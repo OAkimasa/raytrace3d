@@ -10,6 +10,7 @@ print("\nraytrace start")
 
 
 N_air = 1.0
+N_lens_1 = 1.8
 
 fig = plt.figure(figsize=(9, 9))
 ax = fig.add_subplot(111, projection='3d')
@@ -22,8 +23,8 @@ ax.set_zlim(-25, 25)
 # ---- 単位は mm ----
 
 # param = [pos, nV, R, Lens_R(axis+-)]
-surface_1 = [[50., 0., 0.], [1., 0., 0.], 17.91, -60, -0.5]
-surface_2 = [[17.56, 0., 0.], [1., 0., 0.], 17.91, np.inf]
+surface_1 = [[10., 0., 0.], [1., 0., 0.], 17.91, -60, -0.5]
+surface_2 = [[70, 0., 0.], [1., 0., 0.], 17.91, np.inf]
 surface_list = [surface_1, surface_2]
 
 """# glass_list
@@ -84,17 +85,23 @@ VF_2.ray_start_dir = ray_start_dir_init  # 初期値
 VF_3.ray_start_pos = ray_start_pos_init  # 初期値
 VF_3.ray_start_dir = ray_start_dir_init  # 初期値
 VF_1.set_surface(surface_1,
+                 refractive_index_before=N_air,
+                 refractive_index_after=N_lens_1,
                  surface_name='surface_1')  # surface_1を登録
 VF_2.set_surface(surface_1,
+                 refractive_index_before=N_air,
+                 refractive_index_after=N_lens_1,
                  surface_name='surface_1')  # surface_1を登録
 VF_3.set_surface(surface_1,
+                 refractive_index_before=N_air,
+                 refractive_index_after=N_lens_1,
                  surface_name='surface_1')  # surface_1を登録
 VF_1.raytrace_aspherical()  # 光線追跡
 VF_2.raytrace_parabola()  # 光線追跡
 VF_3.raytrace_sphere()  # 光線追跡
-VF_1.reflect()  # surface_1の反射
-VF_2.reflect()  # surface_1の反射
-VF_3.reflect()  # surface_1の反射
+VF_1.refract()
+VF_2.refract()
+VF_3.refract()
 print("VF_1 : ray_end_pos: ", VF_1.ray_end_pos)
 print("VF_1 : ray_end_dir: ", VF_1.ray_end_dir)
 print("VF_2 : ray_end_pos: ", VF_2.ray_end_pos)

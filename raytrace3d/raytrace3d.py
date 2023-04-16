@@ -1343,12 +1343,12 @@ class VectorFunctions:
             if tmp_index == 0:  # x軸方向配置の場合
                 tmp_root = np.sqrt(
                     1-(1+conic_K)*(ray_pos[1]**2+ray_pos[2]**2)*(c**2))
-                normalV_0 = -1
+                normalV_0 = 1
                 normalV_1 = ((2*c*ray_pos[1]*(1+tmp_root))-((ray_pos[1]**2+ray_pos[2]**2)*c*(-1*(
                     c**2)*ray_pos[1]*(1+conic_K))/tmp_root))/((1+tmp_root)**2)
                 normalV_2 = ((2*c*ray_pos[2]*(1+tmp_root))-((ray_pos[1]**2+ray_pos[2]**2)*c*(-1*(
                     c**2)*ray_pos[2]*(1+conic_K))/tmp_root))/((1+tmp_root)**2)
-                normalV = np.array([normalV_0, normalV_1, normalV_2])
+                normalV = np.array([-normalV_0, -normalV_1, -normalV_2])
                 normalV = normalV/np.linalg.norm(normalV)
                 return normalV
         else:
