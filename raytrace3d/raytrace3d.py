@@ -1316,6 +1316,115 @@ class VectorFunctions:
                 self._normalV_refract_or_reflect = self._calc_normalV_aspherical()
             else:  # 光線群の場合
                 print("raytrace_aspherical : 光線群の場合は未実装です。")
+                print("self.ray_start_pos = ", self.ray_start_pos)
+                print("aspherical_pos = ", aspherical_pos)
+                ray_pos = np.array(self.ray_start_pos) - \
+                    np.array(aspherical_pos)
+                print("ray_pos = ", ray_pos)
+                ray_dir = self.ray_start_dir
+                if ray_dir[1] == 0 and ray_dir[2] == 0:  # x軸に平行な光線の場合, たぶんOK
+                    print("x軸に平行な光線の場合 : インデックス自動化未実装")
+                    if aspherical_R < 0:  # 凸面の場合, たぶんOK
+                        print("凸面の場合, たぶんOK")
+                        c = abs(1/aspherical_R)
+                        conic_K = self._conic_K
+                        T = -1*ray_pos[0] + (1-np.sqrt(1-(1+conic_K)*(c**2) *
+                                                       ((ray_pos[1]**2)+(ray_pos[2]**2))))/(c*(1+self._conic_K))
+                    elif aspherical_R > 0:  # 凹面の場合, たぶんOK
+                        print("凹面の場合, たぶんOK")
+                        c = abs(1/aspherical_R)
+                        conic_K = self._conic_K
+                        T = -1*ray_pos[0] + (1-np.sqrt(1-(1+conic_K)*(c**2) *
+                                                       ((ray_pos[1]**2)+(ray_pos[2]**2))))/(-c*(1+self._conic_K))
+                else:  # x軸に平行でない光線の場合, たぶんOK
+                    print("x軸に平行でない光線の場合 : インデックス自動化未実装")
+                    if aspherical_R < 0:  # 凸面の場合, たぶんOK
+                        #print("凸面の場合, (1+K)が正の場合はOK")
+                        c = abs(1/aspherical_R)  # abs()を取る必要があるかも
+                        print("c = ", c)
+                        conic_K = self._conic_K
+                        print("conic_K = ", conic_K)
+                        print("(1+conic_K)", (1+conic_K))
+                        if 1+conic_K > 0:  # 1+Kが正の場合, たぶんOK
+                            A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
+                            B_1 = 2*(c**2)*((1+conic_K)**2) * \
+                                (ray_pos[0]*ray_dir[0]) - \
+                                2*c*(1+conic_K)*ray_dir[0]
+                            C_1 = (c**2)*((1+conic_K)**2) * \
+                                (ray_pos[0]**2) - 2*c * \
+                                (1+conic_K)*ray_pos[0] + 1
+                            A_2 = -1*(c**2)*(1+conic_K) * \
+                                ((ray_dir[1]**2)+(ray_dir[2]**2))
+                            B_2 = -2*(c**2)*(1+conic_K) * \
+                                (ray_pos[1]*ray_dir[1] + ray_pos[2]*ray_dir[2])
+                            C_2 = 1 - (1+conic_K)*(c**2) * \
+                                ((ray_pos[1]**2)+(ray_pos[2]**2))
+                            A = A_1-A_2
+                            B = B_1-B_2
+                            C = C_1-C_2
+                            T = (-B - np.sqrt(B**2 - 4*A*C)) / (2*A)
+                        elif 1+conic_K < 0:  # コーニック定数が負の場合, たぶんOK
+                            A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
+                            B_1 = 2*(c**2)*((1+conic_K)**2) * \
+                                (ray_pos[0]*ray_dir[0]) - \
+                                2*c*abs(1+conic_K)*ray_dir[0]
+                            C_1 = (c**2)*((1+conic_K)**2) * \
+                                (ray_pos[0]**2) - 2*c * \
+                                abs(1+conic_K)*ray_pos[0] + 1
+                            A_2 = -1*(c**2)*abs(1+conic_K) * \
+                                ((ray_dir[1]**2)+(ray_dir[2]**2))
+                            B_2 = -2*(c**2)*abs(1+conic_K) * \
+                                (ray_pos[1]*ray_dir[1] + ray_pos[2]*ray_dir[2])
+                            C_2 = 1 - abs(1+conic_K)*(c**2) * \
+                                ((ray_pos[1]**2)+(ray_pos[2]**2))
+                            A = A_1-A_2
+                            B = B_1-B_2
+                            C = C_1-C_2
+                            T = (-B - np.sqrt(B**2 - 4*A*C)) / (2*A)
+                    elif aspherical_R > 0:  # 凹面の場合, たぶんOK
+                        c = -abs(1/aspherical_R)  # abs()を取る必要があるかも
+                        conic_K = self._conic_K
+                        if 1+conic_K > 0:  # コーニック定数が正の場合, たぶんOK
+                            print("たぶんOK")
+                            A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
+                            B_1 = 2*(c**2)*((1+conic_K)**2) * \
+                                (ray_pos[0]*ray_dir[0]) - \
+                                2*c*(1+conic_K)*ray_dir[0]
+                            C_1 = (c**2)*((1+conic_K)**2) * \
+                                (ray_pos[0]**2) - 2*c * \
+                                (1+conic_K)*ray_pos[0] + 1
+                            A_2 = -1*(c**2)*(1+conic_K) * \
+                                ((ray_dir[1]**2)+(ray_dir[2]**2))
+                            B_2 = -2*(c**2)*(1+conic_K) * \
+                                (ray_pos[1]*ray_dir[1] + ray_pos[2]*ray_dir[2])
+                            C_2 = 1 - (1+conic_K)*(c**2) * \
+                                ((ray_pos[1]**2)+(ray_pos[2]**2))
+                            A = A_1-A_2
+                            B = B_1-B_2
+                            C = C_1-C_2
+                            T = (-B + np.sqrt(B**2 - 4*A*C)) / (2*A)
+                        elif 1+conic_K < 0:  # コーニック定数が負の場合, たぶんOK
+                            A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
+                            B_1 = 2*(c**2)*((1+conic_K)**2) * \
+                                (ray_pos[0]*ray_dir[0]) - \
+                                2*c*abs(1+conic_K)*ray_dir[0]
+                            C_1 = (c**2)*((1+conic_K)**2) * \
+                                (ray_pos[0]**2) - 2*c * \
+                                abs(1+conic_K)*ray_pos[0] + 1
+                            A_2 = -1*(c**2)*abs(1+conic_K) * \
+                                ((ray_dir[1]**2)+(ray_dir[2]**2))
+                            B_2 = -2*(c**2)*abs(1+conic_K) * \
+                                (ray_pos[1]*ray_dir[1] + ray_pos[2]*ray_dir[2])
+                            C_2 = 1 - abs(1+conic_K)*(c**2) * \
+                                ((ray_pos[1]**2)+(ray_pos[2]**2))
+                            A = A_1-A_2
+                            B = B_1-B_2
+                            C = C_1-C_2
+                            T = (-B + np.sqrt(B**2 - 4*A*C)) / (2*A)
+                self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
+                self.optical_path_length += np.array(
+                    T)*self._refractive_index_calc_optical_path_length
+                self._normalV_refract_or_reflect = self._calc_normalV_aspherical()
 
     # 非球面の法線ベクトルを計算する関数
     def _calc_normalV_aspherical(self):
