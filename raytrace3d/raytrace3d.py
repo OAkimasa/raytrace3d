@@ -261,7 +261,7 @@ class VectorFunctions:
             z = np.zeros_like(theta) + Z_center
             self._ax.plot(x, y, z, color='k', linewidth=0.3)
 
-    def plot_plane(self, params):
+    def plot_plane(self, params, color="gray"):
         """
         ミラー(plane)を描画する。
 
@@ -300,7 +300,7 @@ class VectorFunctions:
                     if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
                         Z[i][j] = np.nan
             #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3)
+            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
         elif argmax_index == 1:
             # 円盤生成
             geneNum = 200
@@ -318,7 +318,7 @@ class VectorFunctions:
                     if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
                         Z[i][j] = np.nan
             #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3)
+            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
         elif argmax_index == 2:
             # 円盤生成
             geneNum = 200
@@ -336,7 +336,81 @@ class VectorFunctions:
                     if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
                         Z[i][j] = np.nan
             #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3)
+            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+
+    def plot_square(self, params, color='gray'):
+        """
+        ミラー(square)を描画する。関数"plot_mirror"の派生型。
+
+        Parameters
+        ----------
+        params : list or ndarray
+            光学素子(square)のパラメータを格納したリストまたはndarray。
+            [[pos_x, pos_y, pos_z], [normalV_x, normalV_y, normalV_z], a, np.inf]
+
+        Returns
+        -------
+        None
+        """
+        X_center = params[0][0]
+        Y_center = params[0][1]
+        Z_center = params[0][2]
+        normalV = params[1]
+        a = params[2]  # aperture_R, 正方形の一辺の長さの半分
+
+        argmax_index = np.argmax(np.abs(params[1]))
+
+        if argmax_index == 0:
+            # 正方形生成
+            geneNum = 10
+            y = np.linspace(Y_center-a, Y_center+a, geneNum)
+            z = np.linspace(Z_center-a, Z_center+a, geneNum)
+            Y, Z = np.meshgrid(y, z)
+            if normalV[0] == 0:
+                X = X_center - (normalV[1]*(Y-Y_center) +
+                                normalV[2]*(Z-Z_center)) / 0.01
+            else:
+                X = X_center - (normalV[1]*(Y-Y_center) +
+                                normalV[2]*(Z-Z_center)) / normalV[0]
+            for i in range(geneNum):
+                for j in range(geneNum):
+                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
+                        Z[i][j] = np.nan
+            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+        elif argmax_index == 1:
+            # 正方形生成
+            geneNum = 10
+            x = np.linspace(X_center-a, X_center+a, geneNum)
+            z = np.linspace(Z_center-a, Z_center+a, geneNum)
+            X, Z = np.meshgrid(x, z)
+            if normalV[1] == 0:
+                Y = Y_center - (normalV[0]*(X-X_center) +
+                                normalV[2]*(Z-Z_center)) / 0.01
+            else:
+                Y = Y_center - (normalV[0]*(X-X_center) +
+                                normalV[2]*(Z-Z_center)) / normalV[1]
+            for i in range(geneNum):
+                for j in range(geneNum):
+                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
+                        Z[i][j] = np.nan
+            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+        elif argmax_index == 2:
+            # 正方形生成
+            geneNum = 10
+            x = np.linspace(X_center-a, X_center+a, geneNum)
+            y = np.linspace(Y_center-a, Y_center+a, geneNum)
+            X, Y = np.meshgrid(x, y)
+            if normalV[2] == 0:
+                Z = Z_center - (normalV[0]*(X-X_center) +
+                                normalV[1]*(Y-Y_center)) / 0.01
+            else:
+                Z = Z_center - (normalV[0]*(X-X_center) +
+                                normalV[1]*(Y-Y_center)) / normalV[2]
+            for i in range(geneNum):
+                for j in range(geneNum):
+                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
+                        Z[i][j] = np.nan
+            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
 
     # レンズ描画
     def plot_lens(self, params):
@@ -650,6 +724,101 @@ class VectorFunctions:
         argmin_index = np.argmin(abs_vector)
         return argmin_index
 
+    # 光線の終点に注目し、光学素子の中心からaperture_Rの範囲内にあるかどうかを判定する関数
+    def _is_in_aperture(self, surface, ray_end_point):
+        """
+        光線の終点に注目し、光学素子の中心からaperture_Rの範囲内にあるかどうかを判定する。
+
+        Parameters
+        ----------
+        ray_end_point : ndarray
+            光線の終点の座標を格納したndarray。
+
+        Returns
+        -------
+        bool
+            光学素子の中心からaperture_Rの範囲内にあるかどうか。
+            光線の数だけbool値を格納したリストを返す。
+        """
+        max_index = self._max_index(surface[1])
+        length_ray_end_point = len(ray_end_point)
+        aperture_R = surface[2]
+        if length_ray_end_point == 3:  # 光線1本
+            if max_index == 0:  # x軸向き配置
+                if np.sqrt((ray_end_point[1]-surface[0][1])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
+                    return True
+                else:
+                    return False
+            if max_index == 1:  # y軸向き配置
+                if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
+                    return True
+                else:
+                    return False
+            if max_index == 2:  # z軸向き配置
+                if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[1]-surface[0][1])**2) <= aperture_R:
+                    return True
+                else:
+                    return False
+        else:
+            if max_index == 0:  # x軸向き配置
+                bool_list = []
+                for i in range(length_ray_end_point):
+                    if np.sqrt((ray_end_point[i][1]-surface[0][1])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
+                        bool_list.append(True)
+                    else:
+                        bool_list.append(False)
+                return bool_list
+            if max_index == 1:  # y軸向き配置
+                bool_list = []
+                for i in range(length_ray_end_point):
+                    if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
+                        bool_list.append(True)
+                    else:
+                        bool_list.append(False)
+                return bool_list
+            if max_index == 2:  # z軸向き配置
+                bool_list = []
+                for i in range(length_ray_end_point):
+                    if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][1]-surface[0][1])**2) <= aperture_R:
+                        bool_list.append(True)
+                    else:
+                        bool_list.append(False)
+                return bool_list
+
+    def _is_in_aperture_square(self, surface, ray_end_point):
+        """
+        光線の終点に注目し、光学素子の中心からaperture_Rの範囲内にあるかどうかを判定する。
+
+        Parameters
+        ----------
+        ray_end_point : ndarray
+            光線の終点の座標を格納したndarray。
+
+        Returns
+        -------
+        bool
+            光学素子の中心からaperture_Rの範囲内にあるかどうか。
+            光線の数だけbool値を格納したリストを返す。
+        """
+        max_index = self._max_index(surface[1])
+        length_ray_end_point = len(ray_end_point)
+        aperture_R = surface[2]
+        if length_ray_end_point == 3:
+            if max_index == 0:
+                if abs(ray_end_point[1]-surface[0][1]) <= aperture_R and abs(ray_end_point[2]-surface[0][2]) <= aperture_R:
+                    return True
+                else:
+                    return False
+        else:
+            if max_index == 0:
+                bool_list = []
+                for i in range(length_ray_end_point):
+                    if abs(ray_end_point[i][1]-surface[0][1]) <= aperture_R and abs(ray_end_point[i][2]-surface[0][2]) <= aperture_R:
+                        bool_list.append(True)
+                    else:
+                        bool_list.append(False)
+                return bool_list
+
     # 光学素子の面情報を登録する関数
     def set_surface(self, surface, refractive_index_before=1.0, refractive_index_after=1.0, surface_name='surface'):
         """
@@ -824,7 +993,8 @@ class VectorFunctions:
             tmp_V[:, tmp_index] = lens_R
             test_dot = np.dot(tmp_V[0], self.ray_start_dir[0])
             tmp_V = np.zeros(3)
-            tmp_index = self._max_index(self.ray_start_dir[0])
+            #tmp_index = self._max_index(self.ray_start_dir[0])
+            tmp_index = self._max_index(self._normalV_optical_element)
             tmp_V[tmp_index] = lens_R
             shiftV = lens_pos - tmp_V
             #print("VFtest!!!!, shiftV =", shiftV)
@@ -851,7 +1021,15 @@ class VectorFunctions:
                                    np.array(self.ray_start_dir).T))
                 B = np.diag(np.dot(self.ray_start_dir, ray_pos.T))
                 C = np.diag(np.dot(ray_pos, ray_pos.T)) - abs(lens_R)**2
-                T = (-B - np.sqrt(B**2 - A*C)) / A
+                #T = (-B - np.sqrt(B**2 - A*C)) / A
+                T = []
+                for i in range(length_ray_start_dir):
+                    if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
+                        T_tmp = 0
+                        T.append(T_tmp)
+                    else:
+                        T_tmp = (-B[i] - np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
+                        T.append(T_tmp)
             else:
                 T = np.zeros(length_ray_start_dir)
             self.ray_end_pos = self.ray_start_pos + \
@@ -911,11 +1089,11 @@ class VectorFunctions:
         parabola_pos = self._surface_pos
         parabola_R = self._lens_or_parabola_R
         length_ray_start_dir = len(self.ray_start_pos)
-        """tmp_V = np.zeros_like(self.ray_start_pos)
-        tmp_index = self._max_index(self.ray_start_dir)
-        tmp_V[tmp_index] = parabola_R
-        test_dot = np.dot(tmp_V, self.ray_start_dir)
-        print("test_dot =", test_dot)"""
+        # tmp_V = np.zeros_like(self.ray_start_pos)
+        # tmp_index = self._max_index(self.ray_start_dir)
+        # tmp_V[tmp_index] = parabola_R
+        # test_dot = np.dot(tmp_V, self.ray_start_dir)
+        # print("test_dot =", test_dot)
         if length_ray_start_dir == 3:  # 光線1本の場合
             max_index = self._max_index(self._normalV_optical_element)
             ray_pos = self.ray_start_pos - parabola_pos
@@ -1037,7 +1215,7 @@ class VectorFunctions:
                 a = -a
             if max_index == 0:  # x軸向き配置, 未確認注意
                 print("ray_dir, 自動正規化 x,z向き, 未確認注意")
-                if ray_dir[0][0] == 0 and ray_dir[0][2] == 0:  # x軸に平行な光線
+                if ray_dir[0][1] == 0 and ray_dir[0][2] == 0:  # x軸に平行な光線
                     T = [a*(ray_pos[i][1]**2 - ray_pos[i][0]/a + ray_pos[i][1]
                             ** 2) / ray_dir[i][0] for i in range(length_ray_start_dir)]
                     self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
@@ -1193,48 +1371,42 @@ class VectorFunctions:
         -------
         None
         """
-        print("非球面のレイトレーシングは実装中です。")
+        # print("非球面のレイトレーシングは実装中です。")
         if self._conic_K == -1.000:  # 放物線の場合
             self.raytrace_parabola()
-        else:  # 放物線以外の非球面の場合, 光線１本, たぶんOK
+        else:  # 放物線以外の非球面の場合
             aspherical_pos = self._surface_pos
             aspherical_R = self._lens_or_parabola_R
             length_ray_start_dir = len(self.ray_start_pos)
-            """tmp_V = np.zeros(3)
+            tmp_V = np.zeros(3)
             tmp_index = self._max_index(self._normalV_optical_element)
             tmp_V[tmp_index] = aspherical_R
-            print("tmp_V = ", tmp_V)"""
-            if length_ray_start_dir == 3:
-                print("self.ray_start_pos = ", self.ray_start_pos)
-                print("aspherical_pos = ", aspherical_pos)
+            #print("tmp_V = ", tmp_V)
+            test_dot = np.dot(self.ray_start_dir, tmp_V)
+            c = abs(1/aspherical_R)
+            if aspherical_R < 0:
+                c = c
+            else:
+                c = -c
+            if length_ray_start_dir == 3:  # 光線１本の場合
                 ray_pos = np.array(self.ray_start_pos) - \
                     np.array(aspherical_pos)
-                print("ray_pos = ", ray_pos)
                 ray_dir = self.ray_start_dir
-                if ray_dir[1] == 0 and ray_dir[2] == 0:  # x軸に平行な光線の場合, たぶんOK
-                    print("x軸に平行な光線の場合 : インデックス自動化未実装")
-                    if aspherical_R < 0:  # 凸面の場合, たぶんOK
-                        print("凸面の場合, たぶんOK")
-                        c = abs(1/aspherical_R)
+                if ray_dir[1] == 0 and ray_dir[2] == 0:  # x軸に平行な光線の場合
+                    #print("x軸に平行な光線の場合 : インデックス自動化未実装")
+                    conic_K = self._conic_K
+                    T = -1*ray_pos[0] + (1-np.sqrt(1-(1+conic_K)*(c**2) *
+                                                   ((ray_pos[1]**2)+(ray_pos[2]**2))))/(c*(1+self._conic_K))
+                    if test_dot < 0:  # 凸面の場合
+                        print("平行光 : 非球面、凸面")
+                    elif test_dot > 0:  # 凹面の場合
+                        print("平行光 : 非球面、凹面")
+                else:  # x軸に平行でない光線の場合
+                    #print("x軸に平行でない光線の場合 : インデックス自動化未実装")
+                    if test_dot < 0:  # 凸面の場合
+                        print("非平行光 : 非球面、凸面")
                         conic_K = self._conic_K
-                        T = -1*ray_pos[0] + (1-np.sqrt(1-(1+conic_K)*(c**2) *
-                                                       ((ray_pos[1]**2)+(ray_pos[2]**2))))/(c*(1+self._conic_K))
-                    elif aspherical_R > 0:  # 凹面の場合, たぶんOK
-                        print("凹面の場合, たぶんOK")
-                        c = abs(1/aspherical_R)
-                        conic_K = self._conic_K
-                        T = -1*ray_pos[0] + (1-np.sqrt(1-(1+conic_K)*(c**2) *
-                                                       ((ray_pos[1]**2)+(ray_pos[2]**2))))/(-c*(1+self._conic_K))
-                else:  # x軸に平行でない光線の場合, たぶんOK
-                    print("x軸に平行でない光線の場合 : インデックス自動化未実装")
-                    if aspherical_R < 0:  # 凸面の場合, たぶんOK
-                        #print("凸面の場合, (1+K)が正の場合はOK")
-                        c = abs(1/aspherical_R)  # abs()を取る必要があるかも
-                        print("c = ", c)
-                        conic_K = self._conic_K
-                        print("conic_K = ", conic_K)
-                        print("(1+conic_K)", (1+conic_K))
-                        if 1+conic_K > 0:  # 1+Kが正の場合, たぶんOK
+                        if 1+conic_K > 0:  # 1+Kが正の場合
                             A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
                             B_1 = 2*(c**2)*((1+conic_K)**2) * \
                                 (ray_pos[0]*ray_dir[0]) - \
@@ -1252,7 +1424,7 @@ class VectorFunctions:
                             B = B_1-B_2
                             C = C_1-C_2
                             T = (-B - np.sqrt(B**2 - 4*A*C)) / (2*A)
-                        elif 1+conic_K < 0:  # コーニック定数が負の場合, たぶんOK
+                        elif 1+conic_K < 0:  # コーニック定数が負の場合
                             A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
                             B_1 = 2*(c**2)*((1+conic_K)**2) * \
                                 (ray_pos[0]*ray_dir[0]) - \
@@ -1270,11 +1442,11 @@ class VectorFunctions:
                             B = B_1-B_2
                             C = C_1-C_2
                             T = (-B - np.sqrt(B**2 - 4*A*C)) / (2*A)
-                    elif aspherical_R > 0:  # 凹面の場合, たぶんOK
-                        c = -abs(1/aspherical_R)  # abs()を取る必要があるかも
+                    elif test_dot > 0:  # 凹面の場合
+                        print("非平行光 : 凹面")
+                        # c = -abs(1/aspherical_R)  # abs()を取る必要があるかも
                         conic_K = self._conic_K
-                        if 1+conic_K > 0:  # コーニック定数が正の場合, たぶんOK
-                            print("たぶんOK")
+                        if 1+conic_K > 0:  # コーニック定数が正の場合
                             A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
                             B_1 = 2*(c**2)*((1+conic_K)**2) * \
                                 (ray_pos[0]*ray_dir[0]) - \
@@ -1292,7 +1464,7 @@ class VectorFunctions:
                             B = B_1-B_2
                             C = C_1-C_2
                             T = (-B + np.sqrt(B**2 - 4*A*C)) / (2*A)
-                        elif 1+conic_K < 0:  # コーニック定数が負の場合, たぶんOK
+                        elif 1+conic_K < 0:  # コーニック定数が負の場合
                             A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
                             B_1 = 2*(c**2)*((1+conic_K)**2) * \
                                 (ray_pos[0]*ray_dir[0]) - \
@@ -1315,113 +1487,141 @@ class VectorFunctions:
                     T)*self._refractive_index_calc_optical_path_length
                 self._normalV_refract_or_reflect = self._calc_normalV_aspherical()
             else:  # 光線群の場合
-                print("raytrace_aspherical : 光線群の場合は未実装です。")
-                print("self.ray_start_pos = ", self.ray_start_pos)
-                print("aspherical_pos = ", aspherical_pos)
+                max_index = self._max_index(self._normalV_optical_element)
+                length_ray_start_dir = len(self.ray_start_dir)
+                tmp_V = np.zeros(3)
+                tmp_V[max_index] = aspherical_R
+                test_dot = np.dot(
+                    self.ray_start_dir[int(length_ray_start_dir/2)], tmp_V)
+
                 ray_pos = np.array(self.ray_start_pos) - \
                     np.array(aspherical_pos)
-                print("ray_pos = ", ray_pos)
                 ray_dir = self.ray_start_dir
-                if ray_dir[1] == 0 and ray_dir[2] == 0:  # x軸に平行な光線の場合, たぶんOK
-                    print("x軸に平行な光線の場合 : インデックス自動化未実装")
-                    if aspherical_R < 0:  # 凸面の場合, たぶんOK
-                        print("凸面の場合, たぶんOK")
-                        c = abs(1/aspherical_R)
+                if ray_dir[0][1] == 0 and ray_dir[0][2] == 0:  # x軸に平行な光線の場合
+                    #print("x軸に平行な光線の場合 : インデックス自動化未実装")
+                    conic_K = self._conic_K
+                    # 係数Tの計算、ここでは凹凸関係なし
+                    T = [-1*ray_pos[i][0] + (1-np.sqrt(1-(1+conic_K)*(c**2) * ((ray_pos[i][1]**2)+(ray_pos[i][2]**2))))/(c*(1+self._conic_K))
+                         for i in range(length_ray_start_dir)]
+                    if test_dot < 0:  # 凸面の場合
+                        print("平行光 : 非球面、凸面")
+                    elif test_dot > 0:  # 凹面の場合
+                        print("平行光 : 非球面、凹面")
+                else:  # x軸に平行でない光線の場合
+                    #print("x軸に平行でない光線の場合 : インデックス自動化未実装")
+                    if test_dot < 0:  # 凸面の場合
+                        print("非平行光 : 非球面、凸面")
                         conic_K = self._conic_K
-                        T = -1*ray_pos[0] + (1-np.sqrt(1-(1+conic_K)*(c**2) *
-                                                       ((ray_pos[1]**2)+(ray_pos[2]**2))))/(c*(1+self._conic_K))
-                    elif aspherical_R > 0:  # 凹面の場合, たぶんOK
-                        print("凹面の場合, たぶんOK")
-                        c = abs(1/aspherical_R)
+                        if 1+conic_K > 0:  # 1+Kが正の場合
+                            A_1 = [(c**2)*((1+conic_K)**2)*(ray_dir[i][0]**2)
+                                   for i in range(length_ray_start_dir)]
+                            B_1 = [2*(c**2)*((1+conic_K)**2) *
+                                   (ray_pos[i][0]*ray_dir[i][0]) -
+                                   2*c*(1+conic_K)*ray_dir[i][0]
+                                   for i in range(length_ray_start_dir)]
+                            C_1 = [(c**2)*((1+conic_K)**2) *
+                                   (ray_pos[i][0]**2) - 2*c *
+                                   (1+conic_K)*ray_pos[i][0] + 1
+                                   for i in range(length_ray_start_dir)]
+                            A_2 = [-1*(c**2)*(1+conic_K) *
+                                   ((ray_dir[i][1]**2)+(ray_dir[i][2]**2))
+                                   for i in range(length_ray_start_dir)]
+                            B_2 = [-2*(c**2)*(1+conic_K) *
+                                   (ray_pos[i][1]*ray_dir[i][1] +
+                                    ray_pos[i][2]*ray_dir[i][2])
+                                   for i in range(length_ray_start_dir)]
+                            C_2 = [1 - (1+conic_K)*(c**2) *
+                                   ((ray_pos[i][1]**2)+(ray_pos[i][2]**2))
+                                   for i in range(length_ray_start_dir)]
+                            A = np.array(A_1)-np.array(A_2)
+                            B = np.array(B_1)-np.array(B_2)
+                            C = np.array(C_1)-np.array(C_2)
+                            T = [(-B[i] - np.sqrt(B[i]**2 - 4*A[i]*C[i])) / (2*A[i])
+                                 for i in range(length_ray_start_dir)]
+                        elif 1+conic_K < 0:  # コーニック定数が負の場合
+                            A_1 = [(c**2)*((1+conic_K)**2)*(ray_dir[i][0]**2)
+                                   for i in range(length_ray_start_dir)]
+                            B_1 = [2*(c**2)*((1+conic_K)**2) *
+                                   (ray_pos[i][0]*ray_dir[i][0]) -
+                                   2*c*abs(1+conic_K)*ray_dir[i][0]
+                                   for i in range(length_ray_start_dir)]
+                            C_1 = [(c**2)*((1+conic_K)**2) *
+                                   (ray_pos[i][0]**2) - 2*c *
+                                   abs(1+conic_K)*ray_pos[i][0] + 1
+                                   for i in range(length_ray_start_dir)]
+                            A_2 = [-1*(c**2)*abs(1+conic_K) *
+                                   ((ray_dir[i][1]**2)+(ray_dir[i][2]**2))
+                                   for i in range(length_ray_start_dir)]
+                            B_2 = [-2*(c**2)*abs(1+conic_K) *
+                                   (ray_pos[i][1]*ray_dir[i][1] +
+                                    ray_pos[i][2]*ray_dir[i][2])
+                                   for i in range(length_ray_start_dir)]
+                            C_2 = [1 - abs(1+conic_K)*(c**2) *
+                                   ((ray_pos[i][1]**2)+(ray_pos[i][2]**2))
+                                   for i in range(length_ray_start_dir)]
+                            A = np.array(A_1)-np.array(A_2)
+                            B = np.array(B_1)-np.array(B_2)
+                            C = np.array(C_1)-np.array(C_2)
+                            T = [(-B[i] - np.sqrt(B[i]**2 - 4*A[i]*C[i])) / (2*A[i])
+                                 for i in range(length_ray_start_dir)]
+                    elif test_dot > 0:  # 凹面の場合
+                        print("非平行光 : 凹面")
+                        # c = -abs(1/aspherical_R)  # abs()を取る必要があるかも
                         conic_K = self._conic_K
-                        T = -1*ray_pos[0] + (1-np.sqrt(1-(1+conic_K)*(c**2) *
-                                                       ((ray_pos[1]**2)+(ray_pos[2]**2))))/(-c*(1+self._conic_K))
-                else:  # x軸に平行でない光線の場合, たぶんOK
-                    print("x軸に平行でない光線の場合 : インデックス自動化未実装")
-                    if aspherical_R < 0:  # 凸面の場合, たぶんOK
-                        #print("凸面の場合, (1+K)が正の場合はOK")
-                        c = abs(1/aspherical_R)  # abs()を取る必要があるかも
-                        print("c = ", c)
-                        conic_K = self._conic_K
-                        print("conic_K = ", conic_K)
-                        print("(1+conic_K)", (1+conic_K))
-                        if 1+conic_K > 0:  # 1+Kが正の場合, たぶんOK
-                            A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
-                            B_1 = 2*(c**2)*((1+conic_K)**2) * \
-                                (ray_pos[0]*ray_dir[0]) - \
-                                2*c*(1+conic_K)*ray_dir[0]
-                            C_1 = (c**2)*((1+conic_K)**2) * \
-                                (ray_pos[0]**2) - 2*c * \
-                                (1+conic_K)*ray_pos[0] + 1
-                            A_2 = -1*(c**2)*(1+conic_K) * \
-                                ((ray_dir[1]**2)+(ray_dir[2]**2))
-                            B_2 = -2*(c**2)*(1+conic_K) * \
-                                (ray_pos[1]*ray_dir[1] + ray_pos[2]*ray_dir[2])
-                            C_2 = 1 - (1+conic_K)*(c**2) * \
-                                ((ray_pos[1]**2)+(ray_pos[2]**2))
-                            A = A_1-A_2
-                            B = B_1-B_2
-                            C = C_1-C_2
-                            T = (-B - np.sqrt(B**2 - 4*A*C)) / (2*A)
-                        elif 1+conic_K < 0:  # コーニック定数が負の場合, たぶんOK
-                            A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
-                            B_1 = 2*(c**2)*((1+conic_K)**2) * \
-                                (ray_pos[0]*ray_dir[0]) - \
-                                2*c*abs(1+conic_K)*ray_dir[0]
-                            C_1 = (c**2)*((1+conic_K)**2) * \
-                                (ray_pos[0]**2) - 2*c * \
-                                abs(1+conic_K)*ray_pos[0] + 1
-                            A_2 = -1*(c**2)*abs(1+conic_K) * \
-                                ((ray_dir[1]**2)+(ray_dir[2]**2))
-                            B_2 = -2*(c**2)*abs(1+conic_K) * \
-                                (ray_pos[1]*ray_dir[1] + ray_pos[2]*ray_dir[2])
-                            C_2 = 1 - abs(1+conic_K)*(c**2) * \
-                                ((ray_pos[1]**2)+(ray_pos[2]**2))
-                            A = A_1-A_2
-                            B = B_1-B_2
-                            C = C_1-C_2
-                            T = (-B - np.sqrt(B**2 - 4*A*C)) / (2*A)
-                    elif aspherical_R > 0:  # 凹面の場合, たぶんOK
-                        c = -abs(1/aspherical_R)  # abs()を取る必要があるかも
-                        conic_K = self._conic_K
-                        if 1+conic_K > 0:  # コーニック定数が正の場合, たぶんOK
-                            print("たぶんOK")
-                            A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
-                            B_1 = 2*(c**2)*((1+conic_K)**2) * \
-                                (ray_pos[0]*ray_dir[0]) - \
-                                2*c*(1+conic_K)*ray_dir[0]
-                            C_1 = (c**2)*((1+conic_K)**2) * \
-                                (ray_pos[0]**2) - 2*c * \
-                                (1+conic_K)*ray_pos[0] + 1
-                            A_2 = -1*(c**2)*(1+conic_K) * \
-                                ((ray_dir[1]**2)+(ray_dir[2]**2))
-                            B_2 = -2*(c**2)*(1+conic_K) * \
-                                (ray_pos[1]*ray_dir[1] + ray_pos[2]*ray_dir[2])
-                            C_2 = 1 - (1+conic_K)*(c**2) * \
-                                ((ray_pos[1]**2)+(ray_pos[2]**2))
-                            A = A_1-A_2
-                            B = B_1-B_2
-                            C = C_1-C_2
-                            T = (-B + np.sqrt(B**2 - 4*A*C)) / (2*A)
-                        elif 1+conic_K < 0:  # コーニック定数が負の場合, たぶんOK
-                            A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
-                            B_1 = 2*(c**2)*((1+conic_K)**2) * \
-                                (ray_pos[0]*ray_dir[0]) - \
-                                2*c*abs(1+conic_K)*ray_dir[0]
-                            C_1 = (c**2)*((1+conic_K)**2) * \
-                                (ray_pos[0]**2) - 2*c * \
-                                abs(1+conic_K)*ray_pos[0] + 1
-                            A_2 = -1*(c**2)*abs(1+conic_K) * \
-                                ((ray_dir[1]**2)+(ray_dir[2]**2))
-                            B_2 = -2*(c**2)*abs(1+conic_K) * \
-                                (ray_pos[1]*ray_dir[1] + ray_pos[2]*ray_dir[2])
-                            C_2 = 1 - abs(1+conic_K)*(c**2) * \
-                                ((ray_pos[1]**2)+(ray_pos[2]**2))
-                            A = A_1-A_2
-                            B = B_1-B_2
-                            C = C_1-C_2
-                            T = (-B + np.sqrt(B**2 - 4*A*C)) / (2*A)
-                self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
+                        if 1+conic_K > 0:  # コーニック定数が正の場合
+                            A_1 = [(c**2)*((1+conic_K)**2)*(ray_dir[i][0]**2)
+                                   for i in range(length_ray_start_dir)]
+                            B_1 = [2*(c**2)*((1+conic_K)**2) *
+                                   (ray_pos[i][0]*ray_dir[i][0]) -
+                                   2*c*(1+conic_K)*ray_dir[i][0]
+                                   for i in range(length_ray_start_dir)]
+                            C_1 = [(c**2)*((1+conic_K)**2) *
+                                   (ray_pos[i][0]**2) - 2*c *
+                                   (1+conic_K)*ray_pos[i][0] + 1
+                                   for i in range(length_ray_start_dir)]
+                            A_2 = [-1*(c**2)*(1+conic_K) *
+                                   ((ray_dir[i][1]**2)+(ray_dir[i][2]**2))
+                                   for i in range(length_ray_start_dir)]
+                            B_2 = [-2*(c**2)*(1+conic_K) *
+                                   (ray_pos[i][1]*ray_dir[i][1] +
+                                    ray_pos[i][2]*ray_dir[i][2])
+                                   for i in range(length_ray_start_dir)]
+                            C_2 = [1 - (1+conic_K)*(c**2) *
+                                   ((ray_pos[i][1]**2)+(ray_pos[i][2]**2))
+                                   for i in range(length_ray_start_dir)]
+                            A = np.array(A_1)-np.array(A_2)
+                            B = np.array(B_1)-np.array(B_2)
+                            C = np.array(C_1)-np.array(C_2)
+                            T = [(-B[i] + np.sqrt(B[i]**2 - 4*A[i]*C[i])) / (2*A[i])
+                                 for i in range(length_ray_start_dir)]
+                        elif 1+conic_K < 0:  # コーニック定数が負の場合
+                            A_1 = [(c**2)*((1+conic_K)**2)*(ray_dir[i][0]**2)
+                                   for i in range(length_ray_start_dir)]
+                            B_1 = [2*(c**2)*((1+conic_K)**2) *
+                                   (ray_pos[i][0]*ray_dir[i][0]) -
+                                   2*c*abs(1+conic_K)*ray_dir[i][0]
+                                   for i in range(length_ray_start_dir)]
+                            C_1 = [(c**2)*((1+conic_K)**2) *
+                                   (ray_pos[i][0]**2) - 2*c *
+                                   abs(1+conic_K)*ray_pos[i][0] + 1
+                                   for i in range(length_ray_start_dir)]
+                            A_2 = [-1*(c**2)*abs(1+conic_K) *
+                                   ((ray_dir[i][1]**2)+(ray_dir[i][2]**2))
+                                   for i in range(length_ray_start_dir)]
+                            B_2 = [-2*(c**2)*abs(1+conic_K) *
+                                   (ray_pos[i][1]*ray_dir[i][1] +
+                                    ray_pos[i][2]*ray_dir[i][2])
+                                   for i in range(length_ray_start_dir)]
+                            C_2 = [1 - abs(1+conic_K)*(c**2) *
+                                   ((ray_pos[i][1]**2)+(ray_pos[i][2]**2))
+                                   for i in range(length_ray_start_dir)]
+                            A = np.array(A_1)-np.array(A_2)
+                            B = np.array(B_1)-np.array(B_2)
+                            C = np.array(C_1)-np.array(C_2)
+                            T = [(-B[i] + np.sqrt(B[i]**2 - 4*A[i]*C[i])) / (2*A[i])
+                                 for i in range(length_ray_start_dir)]
+                self.ray_end_pos = self.ray_start_pos + \
+                    [V*T for V, T in zip(self.ray_start_dir, T)]
                 self.optical_path_length += np.array(
                     T)*self._refractive_index_calc_optical_path_length
                 self._normalV_refract_or_reflect = self._calc_normalV_aspherical()
@@ -1444,8 +1644,7 @@ class VectorFunctions:
         c = 1/aspherical_R
         conic_K = self._conic_K
         length_ray_start_dir = len(self.ray_start_pos)
-        if length_ray_start_dir == 3:
-            print("光線1本")
+        if length_ray_start_dir == 3:  # 光線1本の場合
             tmp_index = self._max_index(
                 self._normalV_optical_element)  # 方向の計算に使う
             ray_pos = self.ray_end_pos
@@ -1460,8 +1659,28 @@ class VectorFunctions:
                 normalV = np.array([-normalV_0, -normalV_1, -normalV_2])
                 normalV = normalV/np.linalg.norm(normalV)
                 return normalV
-        else:
-            print("光線群")
+            else:
+                print("Error: _calc_normalV_aspherical")
+        else:  # 光線群の場合
+            tmp_index = self._max_index(
+                self._normalV_optical_element)  # 方向の計算に使う
+            ray_pos = self.ray_end_pos
+            if tmp_index == 0:  # x軸方向配置の場合
+                normalV_list = []
+                for i in range(length_ray_start_dir):
+                    tmp_root = np.sqrt(
+                        1-(1+conic_K)*(ray_pos[i][1]**2+ray_pos[i][2]**2)*(c**2))
+                    normalV_0 = 1
+                    normalV_1 = ((2*c*ray_pos[i][1]*(1+tmp_root))-((ray_pos[i][1]**2+ray_pos[i][2]**2)*c*(-1*(
+                        c**2)*ray_pos[i][1]*(1+conic_K))/tmp_root))/((1+tmp_root)**2)
+                    normalV_2 = ((2*c*ray_pos[i][2]*(1+tmp_root))-((ray_pos[i][1]**2+ray_pos[i][2]**2)*c*(-1*(
+                        c**2)*ray_pos[i][2]*(1+conic_K))/tmp_root))/((1+tmp_root)**2)
+                    normalV = np.array([-normalV_0, -normalV_1, -normalV_2])
+                    normalV = normalV/np.linalg.norm(normalV)
+                    normalV_list.append(normalV)
+                return normalV_list
+            else:
+                print("Error: _calc_normalV_aspherical")
 
     # 反射計算
     def reflect(self):
@@ -1515,9 +1734,10 @@ class VectorFunctions:
         None
         """
         normalV = self._normalV_refract_or_reflect
+        length_ray_start_dir = len(self.ray_start_pos)
+        print("normalV", normalV[int(length_ray_start_dir/2)])
         Nin = self._refractive_index_before
         Nout = self._refractive_index_after
-        length_ray_start_dir = len(self.ray_start_pos)
         if length_ray_start_dir == 3:
             # 正規化
             ray_dir = self.ray_start_dir/np.linalg.norm(self.ray_start_dir)
@@ -1583,8 +1803,9 @@ class VectorFunctions:
             tmp_V[tmp_index] = 1.
             test_dot = np.dot(ray_dir[0], tmp_V)
             # if test_dot <= 0:
+            #print(np.dot(ray_dir[0], normalV[0]))
             if np.dot(ray_dir[0], normalV[0]) <= 0:
-                # print("内積が負です")
+                print("内積が負です")
                 # 係数A
                 A = Nin/Nout
                 # 入射角
@@ -1615,7 +1836,7 @@ class VectorFunctions:
                     tmp_outRayV = tmp_outRayV/np.linalg.norm(tmp_outRayV)
                     outRayV.append(tmp_outRayV)
             else:
-                # print("内積が正です")
+                print("内積が正です")
                 # 係数A
                 A = Nin/Nout
                 # 入射角
@@ -1645,6 +1866,172 @@ class VectorFunctions:
                     # 正規化
                     tmp_outRayV = tmp_outRayV/np.linalg.norm(tmp_outRayV)
                     outRayV.append(tmp_outRayV)
+            print("outRayV", outRayV[int(length_ray_start_dir/2)])
+            self.ray_end_dir = outRayV
+
+    # スネルの法則(逆向き)
+    def refract_reverse(self):
+        """
+        set_surface()で設定した屈折面での屈折計算を行う。
+        終点の方向ベクトルを計算し、self.ray_end_dirに格納する。
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        normalV = self._normalV_refract_or_reflect
+        length_ray_start_dir = len(self.ray_start_pos)
+        print("reverse, normalV", normalV[int(length_ray_start_dir/2)])
+        Nin = self._refractive_index_before
+        Nout = self._refractive_index_after
+        if length_ray_start_dir == 3:
+            # 正規化
+            ray_dir = self.ray_start_dir/np.linalg.norm(self.ray_start_dir)
+            normalV = normalV/np.linalg.norm(normalV)
+            if np.dot(ray_dir, normalV) <= 0:
+                # print("内積が負です")
+                # 係数A
+                A = Nin/Nout
+                # 入射角
+                cos_t_in = abs(np.dot(ray_dir, normalV))
+                # 量子化誤差対策
+                if cos_t_in < -1.:
+                    cos_t_in = -1.
+                elif cos_t_in > 1.:
+                    cos_t_in = 1.
+                # スネルの法則
+                sin_t_in = np.sqrt(1.0 - cos_t_in**2)
+                sin_t_out = sin_t_in*A
+                if sin_t_out > 1.0:
+                    # 全反射する場合
+                    return np.zeros(3)
+                cos_t_out = np.sqrt(1 - sin_t_out**2)
+                # 係数B
+                B = A*cos_t_in - cos_t_out
+                # 出射光線の方向ベクトル
+                outRayV = A*ray_dir + B*normalV
+                # 正規化
+                outRayV = outRayV/np.linalg.norm(outRayV)
+            else:
+                # print("内積が正です")
+                # 係数A
+                A = Nin/Nout
+                # 入射角
+                cos_t_in = abs(np.dot(ray_dir, normalV))
+                # 量子化誤差対策
+                if cos_t_in < -1.:
+                    cos_t_in = -1.
+                elif cos_t_in > 1.:
+                    cos_t_in = 1.
+                # スネルの法則
+                sin_t_in = np.sqrt(1.0 - cos_t_in**2)
+                sin_t_out = sin_t_in*A
+                if sin_t_out > 1.0:
+                    # 全反射する場合
+                    return np.zeros(3)
+                cos_t_out = np.sqrt(1 - sin_t_out**2)
+                # 係数B
+                B = -A*cos_t_in + cos_t_out
+                # 出射光線の方向ベクトル
+                outRayV = A*ray_dir + B*normalV
+                # 正規化
+                outRayV = outRayV/np.linalg.norm(outRayV)
+            self.ray_end_dir = outRayV
+        else:
+            # 正規化
+            ray_dir = [V/np.linalg.norm(V) for V in self.ray_start_dir]
+            normalV = [V/np.linalg.norm(V) for V in normalV]
+            tmp_V = np.zeros(3)
+            if len(normalV) == 3:
+                tmp_index = self._max_index(normalV)
+            else:
+                tmp_index = self._max_index(normalV[0])
+            tmp_V[tmp_index] = 1.
+            test_dot = np.dot(ray_dir[0], tmp_V)
+            # if test_dot <= 0:
+            #print(np.dot(ray_dir[0], normalV[0]))
+            ray_dir_tmp = ray_dir[0]
+            normalV_tmp = [1, 0, 0]
+            for V in ray_dir:
+                # print(V)
+                if V[0] == np.nan:
+                    continue
+                else:
+                    ray_dir_tmp = V
+            # for V in normalV:
+            #     if V[0] == np.nan:
+            #         continue
+            #     else:
+            #         normalV_tmp = V
+            print("ray_dir_tmp", ray_dir_tmp)
+            print("normalV_tmp", normalV_tmp)
+            if np.dot(ray_dir_tmp, normalV_tmp) > 0:
+                print("reverse, 内積が負です")
+                # 係数A
+                A = Nin/Nout
+                # 入射角
+                cos_t_in = np.abs(
+                    np.diag(np.dot(ray_dir, np.array(normalV).T)))
+                outRayV = []
+                for i in range(length_ray_start_dir):
+                    i_cos_t_in = cos_t_in[i]
+                    i_ray_dir = ray_dir[i]
+                    i_normalV = normalV[i]
+                    # 量子化誤差対策
+                    if i_cos_t_in < -1.:
+                        i_cos_t_in = -1.
+                    elif i_cos_t_in > 1.:
+                        i_cos_t_in = 1.
+                    # スネルの法則
+                    sin_t_in = np.sqrt(1.0 - i_cos_t_in**2)
+                    sin_t_out = sin_t_in*A
+                    if sin_t_out > 1.0:
+                        # 全反射する場合
+                        return np.zeros(3)
+                    cos_t_out = np.sqrt(1 - sin_t_out**2)
+                    # 係数B
+                    B = A*i_cos_t_in - cos_t_out
+                    # 出射光線の方向ベクトル
+                    tmp_outRayV = A*i_ray_dir + B*i_normalV
+                    # 正規化
+                    tmp_outRayV = tmp_outRayV/np.linalg.norm(tmp_outRayV)
+                    outRayV.append(tmp_outRayV)
+            else:
+                print("reverse, 内積が正です")
+                # 係数A
+                A = Nin/Nout
+                # 入射角
+                cos_t_in = np.abs(
+                    np.diag(np.dot(ray_dir, np.array(normalV).T)))
+                outRayV = []
+                for i in range(length_ray_start_dir):
+                    i_cos_t_in = cos_t_in[i]
+                    i_ray_dir = ray_dir[i]
+                    i_normalV = normalV[i]
+                    # 量子化誤差対策
+                    if i_cos_t_in < -1.:
+                        i_cos_t_in = -1.
+                    elif i_cos_t_in > 1.:
+                        i_cos_t_in = 1.
+                    # スネルの法則
+                    sin_t_in = np.sqrt(1.0 - i_cos_t_in**2)
+                    sin_t_out = sin_t_in*A
+                    if sin_t_out > 1.0:
+                        # 全反射する場合
+                        return np.zeros(3)
+                    cos_t_out = np.sqrt(1 - sin_t_out**2)
+                    # 係数B
+                    B = -A*i_cos_t_in + cos_t_out
+                    # 出射光線の方向ベクトル
+                    tmp_outRayV = A*i_ray_dir + B*i_normalV
+                    # 正規化
+                    tmp_outRayV = tmp_outRayV/np.linalg.norm(tmp_outRayV)
+                    outRayV.append(tmp_outRayV)
+            print("reverse, outRayV", outRayV[int(length_ray_start_dir/2)])
             self.ray_end_dir = outRayV
 
     # 焦点距離を計算する関数
@@ -1672,6 +2059,7 @@ class VectorFunctions:
             return focal_length
         else:  # 光線が複数の場合
             argmin_index = self._min_index(self.ray_end_dir[0])
+            print("argmin_index = ", argmin_index)
             focal_length = []
             for i in range(length_ray_dir):
                 tmp_V = -1. * \
@@ -1681,7 +2069,14 @@ class VectorFunctions:
                 focal_length.append(tmp_V[argmax_index])
             # 並び替え
             focal_length.sort()
-            return focal_length[0]
+            focal_length_mean = np.mean(focal_length)
+            focal_length_std = np.std(focal_length)
+            focal_length_max = np.max(focal_length)
+            focal_length_min = np.min(focal_length)
+            print("focal_length_mean: ", focal_length_mean,
+                  "std: ", focal_length_std,
+                  "max: ", focal_length_max, "min: ", focal_length_min)
+            return focal_length
 
     # 焦点位置を計算する関数
     def calc_focal_pos(self, ray_start_pos_init):
@@ -1699,7 +2094,7 @@ class VectorFunctions:
             焦点位置。
         """
         length_ray_dir = len(self.ray_end_pos)
-        if length_ray_dir == 3:
+        if length_ray_dir == 3:  # 光線が1本の場合
             argmin_index = self._min_index(self.ray_end_dir)
             tmp_V = -1.*self.ray_end_dir * \
                 self.ray_end_pos[argmin_index]/self.ray_end_dir[argmin_index]
@@ -1707,7 +2102,7 @@ class VectorFunctions:
             argmax_index = self._max_index(tmp_V)
             print("!!!!正確な焦点位置を得るには近軸光線を計算する必要があります!!!!")
             return focal_point[argmax_index]
-        else:
+        else:  # 光線が複数の場合
             argmin_index = self._min_index(self.ray_end_dir[0])
             focal_point_list = []
             for i in range(length_ray_dir):
@@ -1729,7 +2124,7 @@ class VectorFunctions:
             return focal_point
 
     # ２点の位置ベクトルから直線を引く関数
-    def plot_line_blue(self):
+    def plot_line_blue(self, alpha=1.0, fmt='o-'):
         """
         2点の位置ベクトルから直線を引く。
 
@@ -1752,7 +2147,7 @@ class VectorFunctions:
             endY = endPointV[1]
             endZ = endPointV[2]
             self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                          'o-', ms='2', linewidth=0.5, color='blue')
+                          fmt, ms='2', linewidth=0.5, color='blue', alpha=alpha)
         else:
             for i in range(length_ray_start_dir):
                 startPointV = self.ray_start_pos[i]
@@ -1764,9 +2159,9 @@ class VectorFunctions:
                 endY = endPointV[1]
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                              'o-', ms='2', linewidth=0.5, color='blue')
+                              fmt, ms='2', linewidth=0.5, color='blue', alpha=alpha)
 
-    def plot_line_green(self):
+    def plot_line_green(self, alpha=1.0, fmt='o-'):
         """
         2点の位置ベクトルから直線を引く。
 
@@ -1789,7 +2184,7 @@ class VectorFunctions:
             endY = endPointV[1]
             endZ = endPointV[2]
             self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                          'o-', ms='2', linewidth=0.5, color='green')
+                          fmt, ms='2', linewidth=0.5, color='green', alpha=alpha)
         else:
             for i in range(length_ray_start_dir):
                 startPointV = self.ray_start_pos[i]
@@ -1801,9 +2196,9 @@ class VectorFunctions:
                 endY = endPointV[1]
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                              'o-', ms='2', linewidth=0.5, color='green')
+                              fmt, ms='2', linewidth=0.5, color='green', alpha=alpha)
 
-    def plot_line_red(self):
+    def plot_line_red(self, alpha=1.0, fmt='o-'):
         """
         2点の位置ベクトルから直線を引く。
 
@@ -1826,7 +2221,7 @@ class VectorFunctions:
             endY = endPointV[1]
             endZ = endPointV[2]
             self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                          'o-', ms='2', linewidth=0.5, color='r')
+                          fmt, ms='2', linewidth=0.5, color='r', alpha=alpha)
         else:
             for i in range(length_ray_start_dir):
                 startPointV = self.ray_start_pos[i]
@@ -1838,9 +2233,9 @@ class VectorFunctions:
                 endY = endPointV[1]
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                              'o-', ms='2', linewidth=0.5, color='r')
+                              fmt, ms='2', linewidth=0.5, color='r', alpha=alpha)
 
-    def plot_line_orange(self):
+    def plot_line_orange(self, alpha=1.0, fmt='o-'):
         """
         2点の位置ベクトルから直線を引く。
 
@@ -1863,7 +2258,7 @@ class VectorFunctions:
             endY = endPointV[1]
             endZ = endPointV[2]
             self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                          'o-', ms='2', linewidth=0.5, color='orange')
+                          fmt, ms='2', linewidth=0.5, color='orange', alpha=alpha)
         else:
             for i in range(length_ray_start_dir):
                 startPointV = self.ray_start_pos[i]
@@ -1875,9 +2270,9 @@ class VectorFunctions:
                 endY = endPointV[1]
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                              'o-', ms='2', linewidth=0.5, color='orange')
+                              fmt, ms='2', linewidth=0.5, color='orange', alpha=alpha)
 
-    def plot_four_beam_line(self, i):
+    def plot_four_beam_line(self, i, alpha=1.0, fmt='o-'):
         """
         4つの光について、2点の位置ベクトルから直線を引く。
 
@@ -1890,13 +2285,13 @@ class VectorFunctions:
         None
         """
         if i == 0:
-            self.plot_line_blue()
+            self.plot_line_blue(alpha=alpha, fmt=fmt)
         elif i == 1:
-            self.plot_line_green()
+            self.plot_line_green(alpha=alpha, fmt=fmt)
         elif i == 2:
-            self.plot_line_red()
+            self.plot_line_red(alpha=alpha, fmt=fmt)
         elif i == 3:
-            self.plot_line_orange()
+            self.plot_line_orange(alpha=alpha, fmt=fmt)
         else:
             print("fourBeamPlotLine, iの値が不正です")
 
