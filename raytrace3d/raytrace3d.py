@@ -1735,7 +1735,7 @@ class VectorFunctions:
         """
         normalV = self._normalV_refract_or_reflect
         length_ray_start_dir = len(self.ray_start_pos)
-        print("normalV", normalV[int(length_ray_start_dir/2)])
+        # print("normalV", normalV[int(length_ray_start_dir/2)])
         Nin = self._refractive_index_before
         Nout = self._refractive_index_after
         if length_ray_start_dir == 3:
@@ -1805,7 +1805,7 @@ class VectorFunctions:
             # if test_dot <= 0:
             #print(np.dot(ray_dir[0], normalV[0]))
             if np.dot(ray_dir[0], normalV[0]) <= 0:
-                print("内積が負です")
+                # print("内積が負です")
                 # 係数A
                 A = Nin/Nout
                 # 入射角
@@ -1836,7 +1836,7 @@ class VectorFunctions:
                     tmp_outRayV = tmp_outRayV/np.linalg.norm(tmp_outRayV)
                     outRayV.append(tmp_outRayV)
             else:
-                print("内積が正です")
+                # print("内積が正です")
                 # 係数A
                 A = Nin/Nout
                 # 入射角
@@ -1866,7 +1866,7 @@ class VectorFunctions:
                     # 正規化
                     tmp_outRayV = tmp_outRayV/np.linalg.norm(tmp_outRayV)
                     outRayV.append(tmp_outRayV)
-            print("outRayV", outRayV[int(length_ray_start_dir/2)])
+            # print("outRayV", outRayV[int(length_ray_start_dir/2)])
             self.ray_end_dir = outRayV
 
     # スネルの法則(逆向き)
