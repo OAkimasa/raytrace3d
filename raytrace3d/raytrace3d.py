@@ -2059,7 +2059,7 @@ class VectorFunctions:
             return focal_length
         else:  # 光線が複数の場合
             argmin_index = self._min_index(self.ray_end_dir[0])
-            print("argmin_index = ", argmin_index)
+            # print("argmin_index = ", argmin_index)
             focal_length = []
             for i in range(length_ray_dir):
                 tmp_V = -1. * \
@@ -2069,10 +2069,10 @@ class VectorFunctions:
                 focal_length.append(tmp_V[argmax_index])
             # 並び替え
             focal_length.sort()
-            focal_length_mean = np.mean(focal_length)
-            focal_length_std = np.std(focal_length)
-            focal_length_max = np.max(focal_length)
-            focal_length_min = np.min(focal_length)
+            focal_length_mean = np.round(np.mean(focal_length), 5)
+            focal_length_std = np.round(np.std(focal_length), 5)
+            focal_length_max = np.round(np.max(focal_length), 5)
+            focal_length_min = np.round(np.min(focal_length), 5)
             print("focal_length_mean: ", focal_length_mean,
                   "std: ", focal_length_std,
                   "max: ", focal_length_max, "min: ", focal_length_min)
@@ -2124,7 +2124,7 @@ class VectorFunctions:
             return focal_point
 
     # ２点の位置ベクトルから直線を引く関数
-    def plot_line_blue(self, alpha=1.0, fmt='o-'):
+    def plot_line_blue(self, alpha=1.0, fmt='o-', ms=2):
         """
         2点の位置ベクトルから直線を引く。
 
@@ -2147,7 +2147,7 @@ class VectorFunctions:
             endY = endPointV[1]
             endZ = endPointV[2]
             self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                          fmt, ms='2', linewidth=0.5, color='blue', alpha=alpha)
+                          fmt, ms=ms, linewidth=0.5, color='blue', alpha=alpha)
         else:
             for i in range(length_ray_start_dir):
                 startPointV = self.ray_start_pos[i]
@@ -2159,9 +2159,9 @@ class VectorFunctions:
                 endY = endPointV[1]
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                              fmt, ms='2', linewidth=0.5, color='blue', alpha=alpha)
+                              fmt, ms=ms, linewidth=0.5, color='blue', alpha=alpha)
 
-    def plot_line_green(self, alpha=1.0, fmt='o-'):
+    def plot_line_green(self, alpha=1.0, fmt='o-', ms=2):
         """
         2点の位置ベクトルから直線を引く。
 
@@ -2184,7 +2184,7 @@ class VectorFunctions:
             endY = endPointV[1]
             endZ = endPointV[2]
             self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                          fmt, ms='2', linewidth=0.5, color='green', alpha=alpha)
+                          fmt, ms=ms, linewidth=0.5, color='green', alpha=alpha)
         else:
             for i in range(length_ray_start_dir):
                 startPointV = self.ray_start_pos[i]
@@ -2196,9 +2196,9 @@ class VectorFunctions:
                 endY = endPointV[1]
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                              fmt, ms='2', linewidth=0.5, color='green', alpha=alpha)
+                              fmt, ms=ms, linewidth=0.5, color='green', alpha=alpha)
 
-    def plot_line_red(self, alpha=1.0, fmt='o-'):
+    def plot_line_red(self, alpha=1.0, fmt='o-', ms=2):
         """
         2点の位置ベクトルから直線を引く。
 
@@ -2221,7 +2221,7 @@ class VectorFunctions:
             endY = endPointV[1]
             endZ = endPointV[2]
             self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                          fmt, ms='2', linewidth=0.5, color='r', alpha=alpha)
+                          fmt, ms=ms, linewidth=0.5, color='r', alpha=alpha)
         else:
             for i in range(length_ray_start_dir):
                 startPointV = self.ray_start_pos[i]
@@ -2233,9 +2233,9 @@ class VectorFunctions:
                 endY = endPointV[1]
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                              fmt, ms='2', linewidth=0.5, color='r', alpha=alpha)
+                              fmt, ms=ms, linewidth=0.5, color='r', alpha=alpha)
 
-    def plot_line_orange(self, alpha=1.0, fmt='o-'):
+    def plot_line_orange(self, alpha=1.0, fmt='o-', ms=2):
         """
         2点の位置ベクトルから直線を引く。
 
@@ -2258,7 +2258,7 @@ class VectorFunctions:
             endY = endPointV[1]
             endZ = endPointV[2]
             self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                          fmt, ms='2', linewidth=0.5, color='orange', alpha=alpha)
+                          fmt, ms=ms, linewidth=0.5, color='orange', alpha=alpha)
         else:
             for i in range(length_ray_start_dir):
                 startPointV = self.ray_start_pos[i]
@@ -2270,9 +2270,9 @@ class VectorFunctions:
                 endY = endPointV[1]
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
-                              fmt, ms='2', linewidth=0.5, color='orange', alpha=alpha)
+                              fmt, ms=ms, linewidth=0.5, color='orange', alpha=alpha)
 
-    def plot_four_beam_line(self, i, alpha=1.0, fmt='o-'):
+    def plot_four_beam_line(self, i, alpha=1.0, fmt='o-', ms=2):
         """
         4つの光について、2点の位置ベクトルから直線を引く。
 
@@ -2285,13 +2285,13 @@ class VectorFunctions:
         None
         """
         if i == 0:
-            self.plot_line_blue(alpha=alpha, fmt=fmt)
+            self.plot_line_blue(alpha=alpha, fmt=fmt, ms=ms)
         elif i == 1:
-            self.plot_line_green(alpha=alpha, fmt=fmt)
+            self.plot_line_green(alpha=alpha, fmt=fmt, ms=ms)
         elif i == 2:
-            self.plot_line_red(alpha=alpha, fmt=fmt)
+            self.plot_line_red(alpha=alpha, fmt=fmt, ms=ms)
         elif i == 3:
-            self.plot_line_orange(alpha=alpha, fmt=fmt)
+            self.plot_line_orange(alpha=alpha, fmt=fmt, ms=ms)
         else:
             print("fourBeamPlotLine, iの値が不正です")
 
