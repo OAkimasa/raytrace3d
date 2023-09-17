@@ -45,7 +45,7 @@ aspect_Y = 1
 aspect_Z = 1
 ax.set_box_aspect((aspect_X, aspect_Y, aspect_Z))
 scale = 70  # [mm]
-box_center_X = -30
+box_center_X = -10
 box_center_Y = 0
 box_center_Z = 0
 ax.set_xlim(-scale*aspect_X+box_center_X, scale*aspect_X+box_center_X)
@@ -54,7 +54,7 @@ ax.set_zlim(-scale*aspect_Z+box_center_Z, scale*aspect_Z+box_center_Z)
 ax.set_xlabel("[mm]")
 ax.set_ylabel("[mm]")
 ax.set_zlabel("[mm]")
-ax.view_init(elev=25, azim=-65)
+ax.view_init(elev=0, azim=-90)
 
 lens_pos = f_b
 # param = [pos, nV, R, Lens_R(axis+-)]
