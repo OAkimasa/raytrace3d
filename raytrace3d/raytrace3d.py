@@ -1397,14 +1397,14 @@ class VectorFunctions:
                     conic_K = self._conic_K
                     T = -1*ray_pos[0] + (1-np.sqrt(1-(1+conic_K)*(c**2) *
                                                    ((ray_pos[1]**2)+(ray_pos[2]**2))))/(c*(1+self._conic_K))
-                    if test_dot < 0:  # 凸面の場合
-                        print("平行光 : 非球面、凸面")
-                    elif test_dot > 0:  # 凹面の場合
-                        print("平行光 : 非球面、凹面")
+                    # if test_dot < 0:  # 凸面の場合
+                    #     print("平行光 : 非球面、凸面")
+                    # elif test_dot > 0:  # 凹面の場合
+                    #     print("平行光 : 非球面、凹面")
                 else:  # x軸に平行でない光線の場合
                     #print("x軸に平行でない光線の場合 : インデックス自動化未実装")
                     if test_dot < 0:  # 凸面の場合
-                        print("非平行光 : 非球面、凸面")
+                        # print("非平行光 : 非球面、凸面")
                         conic_K = self._conic_K
                         if 1+conic_K > 0:  # 1+Kが正の場合
                             A_1 = (c**2)*((1+conic_K)**2)*(ray_dir[0]**2)
@@ -1443,7 +1443,7 @@ class VectorFunctions:
                             C = C_1-C_2
                             T = (-B - np.sqrt(B**2 - 4*A*C)) / (2*A)
                     elif test_dot > 0:  # 凹面の場合
-                        print("非平行光 : 凹面")
+                        # print("非平行光 : 凹面")
                         # c = -abs(1/aspherical_R)  # abs()を取る必要があるかも
                         conic_K = self._conic_K
                         if 1+conic_K > 0:  # コーニック定数が正の場合
@@ -1503,14 +1503,14 @@ class VectorFunctions:
                     # 係数Tの計算、ここでは凹凸関係なし
                     T = [-1*ray_pos[i][0] + (1-np.sqrt(1-(1+conic_K)*(c**2) * ((ray_pos[i][1]**2)+(ray_pos[i][2]**2))))/(c*(1+self._conic_K))
                          for i in range(length_ray_start_dir)]
-                    if test_dot < 0:  # 凸面の場合
-                        print("平行光 : 非球面、凸面")
-                    elif test_dot > 0:  # 凹面の場合
-                        print("平行光 : 非球面、凹面")
+                    # if test_dot < 0:  # 凸面の場合
+                    #     print("平行光 : 非球面、凸面")
+                    # elif test_dot > 0:  # 凹面の場合
+                    #     print("平行光 : 非球面、凹面")
                 else:  # x軸に平行でない光線の場合
                     #print("x軸に平行でない光線の場合 : インデックス自動化未実装")
                     if test_dot < 0:  # 凸面の場合
-                        print("非平行光 : 非球面、凸面")
+                        # print("非平行光 : 非球面、凸面")
                         conic_K = self._conic_K
                         if 1+conic_K > 0:  # 1+Kが正の場合
                             A_1 = [(c**2)*((1+conic_K)**2)*(ray_dir[i][0]**2)
@@ -1565,7 +1565,7 @@ class VectorFunctions:
                             T = [(-B[i] - np.sqrt(B[i]**2 - 4*A[i]*C[i])) / (2*A[i])
                                  for i in range(length_ray_start_dir)]
                     elif test_dot > 0:  # 凹面の場合
-                        print("非平行光 : 凹面")
+                        # print("非平行光 : 凹面")
                         # c = -abs(1/aspherical_R)  # abs()を取る必要があるかも
                         conic_K = self._conic_K
                         if 1+conic_K > 0:  # コーニック定数が正の場合
