@@ -1717,7 +1717,7 @@ class VectorFunctions:
             outRayV = np.array(ray_dir) - 2*np.array(dot_tmp2)
             # 正規化
             outRayV = [V/np.linalg.norm(V) for V in outRayV]
-            self.ray_end_dir = outRayV
+            self.ray_end_dir = np.array(outRayV)
 
     # スネルの法則
     def refract(self):
@@ -1867,7 +1867,7 @@ class VectorFunctions:
                     tmp_outRayV = tmp_outRayV/np.linalg.norm(tmp_outRayV)
                     outRayV.append(tmp_outRayV)
             # print("outRayV", outRayV[int(length_ray_start_dir/2)])
-            self.ray_end_dir = outRayV
+            self.ray_end_dir = np.array(outRayV)
 
     # スネルの法則(逆向き)
     def refract_reverse(self):
@@ -2370,3 +2370,6 @@ class VectorFunctions:
                 endZ = endPointV[2]
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
                               'o-', ms='2', linewidth=0.5, color='black')
+
+    def __repr__(self) -> str:
+        return f'ray_end_pos.shape: {self.ray_end_pos.shape}, ray_end_dir.shape: {self.ray_end_dir.shape}, optical_path_length.shape: {self.optical_path_length.shape}'
