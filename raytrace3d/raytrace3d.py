@@ -11,6 +11,10 @@ class VectorFunctions:
     ----------
     _ax : Axes3D
         3次元グラフを描画するためのAxes3Dオブジェクト。
+    ray_init_pos : list or ndarray
+        光源の位置ベクトル。
+    ray_init_dir : list or ndarray
+        光源の方向ベクトル。
     ray_start_pos : list or ndarray
         光線の始点の位置ベクトル。
     ray_start_dir : list or ndarray
@@ -41,6 +45,8 @@ class VectorFunctions:
 
     def __init__(self):
         self._ax = None  # plotline関数のため
+        self.ray_init_pos = np.array([0, 0, 0])  # 光源の位置ベクトル
+        self.ray_init_dir = np.array([0, 0, 0])  # 光源の方向ベクトル
         self.ray_start_pos = np.array([0, 0, 0])  # 光線の始点
         self.ray_start_dir = np.array([0, 0, 0])  # 光線の方向ベクトル
         self.ray_end_pos = np.array([0, 0, 0])  # 光線の終点
@@ -2035,7 +2041,7 @@ class VectorFunctions:
             self.ray_end_dir = outRayV
 
     # 焦点距離を計算する関数
-    def calc_focal_length(self, ray_start_pos_init):
+    def calc_focal_length(self, ray_start_pos_init=None):
         """
         焦点距離を計算する。
 
@@ -2049,6 +2055,8 @@ class VectorFunctions:
         focal_length : float
             焦点距離。
         """
+        if ray_start_pos_init is None:
+            ray_start_pos_init = self.ray_init_pos
         length_ray_dir = len(self.ray_end_pos)
         if length_ray_dir == 3:
             argmin_index = self._min_index(self.ray_end_dir)
@@ -2079,7 +2087,7 @@ class VectorFunctions:
             return focal_length
 
     # 焦点位置を計算する関数
-    def calc_focal_pos(self, ray_start_pos_init):
+    def calc_focal_pos(self, ray_start_pos_init=None):
         """
         焦点位置を計算する。
 
@@ -2093,6 +2101,8 @@ class VectorFunctions:
         focal_length : float
             焦点位置。
         """
+        if ray_start_pos_init is None:
+            ray_start_pos_init = self.ray_init_pos
         length_ray_dir = len(self.ray_end_pos)
         if length_ray_dir == 3:  # 光線が1本の場合
             argmin_index = self._min_index(self.ray_end_dir)
@@ -2371,5 +2381,25 @@ class VectorFunctions:
                 self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
                               'o-', ms='2', linewidth=0.5, color='black')
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f'ray_end_pos.shape: {self.ray_end_pos.shape}, ray_end_dir.shape: {self.ray_end_dir.shape}, optical_path_length.shape: {self.optical_path_length.shape}'
+
+    def __repr__(self) -> str:
+        return f'VectorFunctions("{self._ax}",\
+                                "{self.ray_init_pos}",\
+                                "{self.ray_init_dir}",\
+                                "{self.ray_start_pos}",\
+                                "{self.ray_start_dir}",\
+                                "{self.ray_end_pos}",\
+                                "{self.ray_end_dir}",\
+                                "{self._surface_pos}",\
+                                "{self._limit_R}",\
+                                "{self._lens_or_parabola_R}",\
+                                "{self._conic_K}",\
+                                "{self._surface_name}",\
+                                "{self._refractive_index_before}",\
+                                "{self._refractive_index_after}",\
+                                "{self._refractive_index_calc_optical_path_length}",\
+                                "{self._normalV_optical_element}",\
+                                "{self._normalV_refract_or_reflect}",\
+                                "{self.optical_path_length}")'
