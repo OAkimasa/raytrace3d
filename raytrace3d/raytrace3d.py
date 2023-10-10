@@ -917,36 +917,59 @@ class VectorFunctions:
         centerV = self._surface_pos
         normalV = self._normalV_optical_element
         length_ray_start_dir = len(self.ray_start_dir)
-        #print("length_ray_start_dir", length_ray_start_dir)
+
+        nV = np.array(normalV) / np.linalg.norm(normalV)
+
+        dot_product = np.dot(centerV, nV)
+        dot_product_start = np.dot(self.ray_start_pos, nV)
+        dot_product_dir = np.dot(self.ray_start_dir, nV)
+
         if length_ray_start_dir == 3:
-            nV = np.array(normalV)/np.linalg.norm(normalV)
-            T = (np.dot(centerV, nV)-np.dot(self.ray_start_pos, nV)) / \
-                (np.dot(self.ray_start_dir, nV))
-            self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
-            #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!2", np.shape(self.ray_end_pos))
-            self.optical_path_length += T*self._refractive_index_calc_optical_path_length
+            T = (dot_product - dot_product_start) / dot_product_dir
+            self.ray_end_pos = self.ray_start_pos + T * self.ray_start_dir
+            self.optical_path_length += T * self._refractive_index_calc_optical_path_length
             self._normalV_refract_or_reflect = nV
         else:  # 光線群の場合
-            nV = np.array(normalV)/np.linalg.norm(normalV)
-            T = []
-            for i in range(length_ray_start_dir):
-                if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
-                    T_tmp = 0
-                    print("VF, raytrace_plane, T_tmp", T_tmp)
-                    T.append(T_tmp)
-                else:
-                    T_tmp = (np.dot(centerV, nV)-np.dot(np.array(self.ray_start_pos[i]), nV)) / (
-                        np.dot(np.array(self.ray_start_dir[i]), nV))
-                    T.append(T_tmp)
-            T = np.array(T)
-            #T = [(np.dot(centerV, nV)-np.dot(self.ray_start_pos[i], nV)) / (np.dot(self.ray_start_dir[i], nV)) for i in range(length_ray_start_dir)]
-            #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!1", np.shape(self.ray_end_pos), np.shape(T), np.shape(self.ray_end_dir))
+            T = np.where(dot_product_dir == 0, 0, (dot_product -
+                         dot_product_start) / dot_product_dir)
             self.ray_end_pos = self.ray_start_pos + \
-                np.array([V*T for V, T in zip(self.ray_start_dir, T)])
-            #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!2", np.shape(self.ray_end_pos), np.shape(T), np.shape(self.ray_end_dir), np.shape([V*T for V, T in zip(self.ray_start_dir, T)]))
-            self.optical_path_length += np.array(T) * \
-                self._refractive_index_calc_optical_path_length
-            self._normalV_refract_or_reflect = [nV]*length_ray_start_dir
+                (self.ray_start_dir.T * T).T
+            self.optical_path_length += T * self._refractive_index_calc_optical_path_length
+            self._normalV_refract_or_reflect = np.tile(
+                nV, (length_ray_start_dir, 1))
+        # centerV = self._surface_pos
+        # normalV = self._normalV_optical_element
+        # length_ray_start_dir = len(self.ray_start_dir)
+        # #print("length_ray_start_dir", length_ray_start_dir)
+        # if length_ray_start_dir == 3:
+        #     nV = np.array(normalV)/np.linalg.norm(normalV)
+        #     T = (np.dot(centerV, nV)-np.dot(self.ray_start_pos, nV)) / \
+        #         (np.dot(self.ray_start_dir, nV))
+        #     self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
+        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!2", np.shape(self.ray_end_pos))
+        #     self.optical_path_length += T*self._refractive_index_calc_optical_path_length
+        #     self._normalV_refract_or_reflect = nV
+        # else:  # 光線群の場合
+        #     nV = np.array(normalV)/np.linalg.norm(normalV)
+        #     T = []
+        #     for i in range(length_ray_start_dir):
+        #         if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
+        #             T_tmp = 0
+        #             print("VF, raytrace_plane, T_tmp", T_tmp)
+        #             T.append(T_tmp)
+        #         else:
+        #             T_tmp = (np.dot(centerV, nV)-np.dot(np.array(self.ray_start_pos[i]), nV)) / (
+        #                 np.dot(np.array(self.ray_start_dir[i]), nV))
+        #             T.append(T_tmp)
+        #     T = np.array(T)
+        #     #T = [(np.dot(centerV, nV)-np.dot(self.ray_start_pos[i], nV)) / (np.dot(self.ray_start_dir[i], nV)) for i in range(length_ray_start_dir)]
+        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!1", np.shape(self.ray_end_pos), np.shape(T), np.shape(self.ray_end_dir))
+        #     self.ray_end_pos = self.ray_start_pos + \
+        #         np.array([V*T for V, T in zip(self.ray_start_dir, T)])
+        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!2", np.shape(self.ray_end_pos), np.shape(T), np.shape(self.ray_end_dir), np.shape([V*T for V, T in zip(self.ray_start_dir, T)]))
+        #     self.optical_path_length += np.array(T) * \
+        #         self._refractive_index_calc_optical_path_length
+        #     self._normalV_refract_or_reflect = [nV]*length_ray_start_dir
 
     # 球面のレイトレーシング
     def raytrace_sphere(self):
