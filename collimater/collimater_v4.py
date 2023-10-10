@@ -77,12 +77,14 @@ ax.view_init(elev=0, azim=-90)
 
 lens_pos = f_b
 # param = [pos, nV, R, Lens_R(axis+-)]
-surface_1 = [[lens_pos+0.00, 0., 0.],
+lens_shift = np.array([0., 0.3, 0.])
+surface_1 = [[lens_pos+0.00, 0., 0.]+lens_shift,
              [1., 0., 0.], 24/2, R_3]  # air->lens2
-surface_2 = [[lens_pos+t_c2, 0., 0.],
+surface_2 = [[lens_pos+t_c2, 0., 0.]+lens_shift,
              [1., 0., 0.], 24/2, R_2]  # lens2->lens1
-surface_3 = [[lens_pos+t_c1+t_c2, 0., 0.],
+surface_3 = [[lens_pos+t_c1+t_c2, 0., 0.]+lens_shift,
              [1., 0., 0.], 24/2, R_1]  # lens1->air
+
 
 evaluation_plane = [[200.000, 0., 0.], [1., 0., 0.], 24/2, 0.]  # air->air
 check_plane = [[lens_pos, 0., 0.], [1., 0., 0.], 24/2., 0.]  # air->air
@@ -264,14 +266,25 @@ for VF in VF_list:
 
 # param = [pos, nV, R, Lens_R(axis+-)]
 lens_pos = 0.
-surface_1 = [[lens_pos+0.00, 0., 0.],
-             [1., 0., 0.], 24/2, -R_1]  # air->lens1
-surface_2 = [[lens_pos+t_c1, 0., 0.],
-             [1., 0., 0.], 24/2, -R_2]  # lens1->lens2
-surface_3 = [[lens_pos+t_c1+t_c2, 0., 0.],
-             [1., 0., 0.], 24/2, -R_3]  # lens2->air
-evaluation_plane = [[f_b+t_c1+t_c2-0.128, 0., 0.],
-                    [1., 0., 0.], 24, 0.]  # air->air
+mode = 1  # 運用時、0: 通常の射出瞳をセンサーへ向ける, 1: 通常の射出瞳を光源へ向ける
+if mode:
+    surface_1 = [[lens_pos+0.00, 0., 0.]+lens_shift,
+                 [1., 0., 0.], 24/2, -R_1]  # air->lens1
+    surface_2 = [[lens_pos+t_c1, 0., 0.]+lens_shift,
+                 [1., 0., 0.], 24/2, -R_2]  # lens1->lens2
+    surface_3 = [[lens_pos+t_c1+t_c2, 0., 0.]+lens_shift,
+                 [1., 0., 0.], 24/2, -R_3]  # lens2->air
+    evaluation_plane = [[f_b+t_c1+t_c2-0.128, 0., 0.],
+                        [1., 0., 0.], 24, 0.]  # air->air
+else:
+    surface_1 = [[lens_pos+0.00, 0., 0.]+lens_shift,
+                [1., 0., 0.], 24/2, R_3]  # air->lens2
+    surface_2 = [[lens_pos+t_c2, 0., 0.]+lens_shift,
+                [1., 0., 0.], 24/2, R_2]  # lens2->lens1
+    surface_3 = [[lens_pos+t_c1+t_c2, 0., 0.]+lens_shift,
+                [1., 0., 0.], 24/2, R_1]  # lens1->air
+    evaluation_plane = [[35.902, 0., 0.],
+                        [1., 0., 0.], 24, 0.]  # air->air
 check_plane = [[f_b+t_c1+t_c2, 0., 0.], [1., 0., 0.], 24/2., 0.]  # air->air
 lens_list = [surface_1, surface_2, surface_3]
 plane_list = [evaluation_plane, check_plane]
@@ -512,7 +525,7 @@ ax.set_xticks(np.arange(0, 37, 1),
               fringe_zernike_mode_name, rotation=-90, fontsize=8)
 ax.grid()
 ax.set_xlim(0, 21)
-ax.set_ylim(-0.25, 0.25)
+ax.set_ylim(-0.5, 0.5)
 
 for i, wavefront_func in enumerate(wavefront_func_list):
     alpha = 0.3

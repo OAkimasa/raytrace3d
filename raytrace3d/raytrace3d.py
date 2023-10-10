@@ -933,7 +933,7 @@ class VectorFunctions:
             T = np.where(dot_product_dir == 0, 0, (dot_product -
                          dot_product_start) / dot_product_dir)
             self.ray_end_pos = self.ray_start_pos + \
-                (self.ray_start_dir.T * T).T
+                (np.array(self.ray_start_dir).T * T).T
             self.optical_path_length += T * self._refractive_index_calc_optical_path_length
             self._normalV_refract_or_reflect = np.tile(
                 nV, (length_ray_start_dir, 1))
