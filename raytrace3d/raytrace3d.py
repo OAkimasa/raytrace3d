@@ -684,12 +684,13 @@ class VectorFunctions:
         result : ndarray
             (x,y,z)の組を格納したndarray。shapeは(shape0, shape1)。
         """
-        result = [None]*(len(point0)+len(point1)+len(point2))
-        result[::3] = point0
-        result[1::3] = point1
-        result[2::3] = point2
-        result = np.array(result)
-        result = result.reshape(shape0, shape1)
+        # result = [None]*(len(point0)+len(point1)+len(point2))
+        # result[::3] = point0
+        # result[1::3] = point1
+        # result[2::3] = point2
+        # result = np.array(result)
+        # result = result.reshape(shape0, shape1)
+        result = np.column_stack((point0, point1, point2))
         return result
 
     # ベクトルの最大成分のインデックスを返す関数
@@ -746,50 +747,70 @@ class VectorFunctions:
             光学素子の中心からaperture_Rの範囲内にあるかどうか。
             光線の数だけbool値を格納したリストを返す。
         """
+        # max_index = self._max_index(surface[1])
+        # length_ray_end_point = len(ray_end_point)
+        # aperture_R = surface[2]
+        # if length_ray_end_point == 3:  # 光線1本
+        #     if max_index == 0:  # x軸向き配置
+        #         if np.sqrt((ray_end_point[1]-surface[0][1])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
+        #             return True
+        #         else:
+        #             return False
+        #     if max_index == 1:  # y軸向き配置
+        #         if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
+        #             return True
+        #         else:
+        #             return False
+        #     if max_index == 2:  # z軸向き配置
+        #         if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[1]-surface[0][1])**2) <= aperture_R:
+        #             return True
+        #         else:
+        #             return False
+        # else:
+        #     if max_index == 0:  # x軸向き配置
+        #         bool_list = []
+        #         for i in range(length_ray_end_point):
+        #             if np.sqrt((ray_end_point[i][1]-surface[0][1])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
+        #                 bool_list.append(True)
+        #             else:
+        #                 bool_list.append(False)
+        #         return bool_list
+        #     if max_index == 1:  # y軸向き配置
+        #         bool_list = []
+        #         for i in range(length_ray_end_point):
+        #             if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
+        #                 bool_list.append(True)
+        #             else:
+        #                 bool_list.append(False)
+        #         return bool_list
+        #     if max_index == 2:  # z軸向き配置
+        #         bool_list = []
+        #         for i in range(length_ray_end_point):
+        #             if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][1]-surface[0][1])**2) <= aperture_R:
+        #                 bool_list.append(True)
+        #             else:
+        #                 bool_list.append(False)
+        #         return bool_list
         max_index = self._max_index(surface[1])
-        length_ray_end_point = len(ray_end_point)
         aperture_R = surface[2]
-        if length_ray_end_point == 3:  # 光線1本
-            if max_index == 0:  # x軸向き配置
-                if np.sqrt((ray_end_point[1]-surface[0][1])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
-                    return True
-                else:
-                    return False
-            if max_index == 1:  # y軸向き配置
-                if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
-                    return True
-                else:
-                    return False
-            if max_index == 2:  # z軸向き配置
-                if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[1]-surface[0][1])**2) <= aperture_R:
-                    return True
-                else:
-                    return False
-        else:
-            if max_index == 0:  # x軸向き配置
-                bool_list = []
-                for i in range(length_ray_end_point):
-                    if np.sqrt((ray_end_point[i][1]-surface[0][1])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
-                        bool_list.append(True)
-                    else:
-                        bool_list.append(False)
-                return bool_list
-            if max_index == 1:  # y軸向き配置
-                bool_list = []
-                for i in range(length_ray_end_point):
-                    if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
-                        bool_list.append(True)
-                    else:
-                        bool_list.append(False)
-                return bool_list
-            if max_index == 2:  # z軸向き配置
-                bool_list = []
-                for i in range(length_ray_end_point):
-                    if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][1]-surface[0][1])**2) <= aperture_R:
-                        bool_list.append(True)
-                    else:
-                        bool_list.append(False)
-                return bool_list
+
+        if max_index == 0:  # x軸向き配置
+            # 光線の終点のy座標とz座標を一度に比較
+            diff = np.abs(ray_end_point[:, [1, 2]] - surface[0][[1, 2]])
+            in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
+            return in_aperture
+
+        if max_index == 1:  # y軸向き配置
+            # 光線の終点のx座標とz座標を一度に比較
+            diff = np.abs(ray_end_point[:, [0, 2]] - surface[0][[0, 2]])
+            in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
+            return in_aperture
+
+        if max_index == 2:  # z軸向き配置
+            # 光線の終点のx座標とy座標を一度に比較
+            diff = np.abs(ray_end_point[:, [0, 1]] - surface[0][[0, 1]])
+            in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
+            return in_aperture
 
     def _is_in_aperture_square(self, surface, ray_end_point):
         """
@@ -806,24 +827,35 @@ class VectorFunctions:
             光学素子の中心からaperture_Rの範囲内にあるかどうか。
             光線の数だけbool値を格納したリストを返す。
         """
+        # max_index = self._max_index(surface[1])
+        # length_ray_end_point = len(ray_end_point)
+        # aperture_R = surface[2]
+        # if length_ray_end_point == 3:
+        #     if max_index == 0:
+        #         if abs(ray_end_point[1]-surface[0][1]) <= aperture_R and abs(ray_end_point[2]-surface[0][2]) <= aperture_R:
+        #             return True
+        #         else:
+        #             return False
+        # else:
+        #     if max_index == 0:
+        #         bool_list = []
+        #         for i in range(length_ray_end_point):
+        #             if abs(ray_end_point[i][1]-surface[0][1]) <= aperture_R and abs(ray_end_point[i][2]-surface[0][2]) <= aperture_R:
+        #                 bool_list.append(True)
+        #             else:
+        #                 bool_list.append(False)
+        #         return bool_list
         max_index = self._max_index(surface[1])
-        length_ray_end_point = len(ray_end_point)
         aperture_R = surface[2]
-        if length_ray_end_point == 3:
-            if max_index == 0:
-                if abs(ray_end_point[1]-surface[0][1]) <= aperture_R and abs(ray_end_point[2]-surface[0][2]) <= aperture_R:
-                    return True
-                else:
-                    return False
-        else:
-            if max_index == 0:
-                bool_list = []
-                for i in range(length_ray_end_point):
-                    if abs(ray_end_point[i][1]-surface[0][1]) <= aperture_R and abs(ray_end_point[i][2]-surface[0][2]) <= aperture_R:
-                        bool_list.append(True)
-                    else:
-                        bool_list.append(False)
-                return bool_list
+
+        if max_index == 0:
+            # 光線の終点のy座標とz座標を一度に比較
+            diff = np.abs(ray_end_point[:, [1, 2]] - surface[0][[1, 2]])
+            in_aperture = np.all(diff <= aperture_R, axis=1)
+            return in_aperture
+
+        # max_index != 0 の場合、すべての光線は中心のy座標とz座標内にあります
+        return np.ones(len(ray_end_point), dtype=bool)
 
     # 光学素子の面情報を登録する関数
     def set_surface(self, surface, refractive_index_before=1.0, refractive_index_after=1.0, surface_name='surface'):
@@ -1272,6 +1304,12 @@ class VectorFunctions:
                              for i in range(length_ray_start_dir)]
                         C = [ray_pos[i][1]**2 + ray_pos[i][2]**2 - ray_pos[i][0]/a
                              for i in range(length_ray_start_dir)]
+                        T = [(-B[i] + np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
+                             for i in range(length_ray_start_dir)]
+                        self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
+                        self.optical_path_length += np.array(T) * \
+                            self._refractive_index_calc_optical_path_length
+                        self._normalV_refract_or_reflect = self._calc_normalV_parabola()
             elif max_index == 1:  # y軸向き配置, たぶんOK
                 if ray_dir[0][0] == 0 and ray_dir[0][2] == 0:  # y軸に平行な光線
                     T = [a*(ray_pos[i][0]**2 - ray_pos[i][1]/a + ray_pos[i][0]
@@ -1290,10 +1328,10 @@ class VectorFunctions:
                              [1]/a for i in range(length_ray_start_dir)]
                         T = [(-B[i] - np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
                              for i in range(length_ray_start_dir)]
-                        self.ray_end_pos = [
-                            self.ray_start_pos[i] + T[i]*self.ray_start_dir[i] for i in range(length_ray_start_dir)]
-                        self.optical_path_length += [np.array(
-                            T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)]
+                        self.ray_end_pos = np.array([
+                            self.ray_start_pos[i] + T[i]*self.ray_start_dir[i] for i in range(length_ray_start_dir)])
+                        self.optical_path_length += np.array([np.array(
+                            T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)])
                         self._normalV_refract_or_reflect = self._calc_normalV_parabola()
                     else:  # 凹
                         A = [ray_dir[i][0]**2 + ray_dir[i][2] **
@@ -1304,10 +1342,10 @@ class VectorFunctions:
                              [1]/a for i in range(length_ray_start_dir)]
                         T = [(-B[i] + np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
                              for i in range(length_ray_start_dir)]
-                        self.ray_end_pos = [
-                            self.ray_start_pos[i] + T[i]*self.ray_start_dir[i] for i in range(length_ray_start_dir)]
-                        self.optical_path_length += [np.array(
-                            T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)]
+                        self.ray_end_pos = np.array([
+                            self.ray_start_pos[i] + T[i]*self.ray_start_dir[i] for i in range(length_ray_start_dir)])
+                        self.optical_path_length += np.array([np.array(
+                            T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)])
                         self._normalV_refract_or_reflect = self._calc_normalV_parabola()
             elif max_index == 2:  # z軸向き配置, 未確認注意
                 print("ray_dir, 自動正規化 x,z向き, 未確認注意")
@@ -1328,10 +1366,10 @@ class VectorFunctions:
                              [2]/a for i in range(length_ray_start_dir)]
                         T = [(-B[i] - np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
                              for i in range(length_ray_start_dir)]
-                        self.ray_end_pos = [
-                            self.ray_start_pos[i] + T[i]*self.ray_start_dir[i] for i in range(length_ray_start_dir)]
-                        self.optical_path_length += [np.array(
-                            T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)]
+                        self.ray_end_pos = np.array([
+                            self.ray_start_pos[i] + T[i]*self.ray_start_dir[i] for i in range(length_ray_start_dir)])
+                        self.optical_path_length += np.array([np.array(
+                            T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)])
                         self._normalV_refract_or_reflect = self._calc_normalV_parabola()
                     else:  # 凹
                         A = [ray_dir[i][0]**2 + ray_dir[i][1] **
@@ -1342,10 +1380,10 @@ class VectorFunctions:
                              [2]/a for i in range(length_ray_start_dir)]
                         T = [(-B[i] + np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
                              for i in range(length_ray_start_dir)]
-                        self.ray_end_pos = [
-                            self.ray_start_pos[i] + T[i]*self.ray_start_dir[i] for i in range(length_ray_start_dir)]
-                        self.optical_path_length += [np.array(
-                            T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)]
+                        self.ray_end_pos = np.array([
+                            self.ray_start_pos[i] + T[i]*self.ray_start_dir[i] for i in range(length_ray_start_dir)])
+                        self.optical_path_length += np.array([np.array(
+                            T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)])
                         self._normalV_refract_or_reflect = self._calc_normalV_parabola()
 
     # 放物線の法線ベクトルを計算する関数
