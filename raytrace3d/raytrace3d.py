@@ -1,4 +1,6 @@
 import numpy as np
+import plotly.graph_objs as go
+from scipy.__config__ import show
 
 """光学計算や光学系の描画を行うクラス。"""
 
@@ -45,6 +47,7 @@ class VectorFunctions:
 
     def __init__(self):
         self._ax = None  # plotline関数のため
+        self._fig_plotly = None  # plotlyで描画
         self.ray_init_pos = np.array([0, 0, 0])  # 光源の位置ベクトル
         self.ray_init_dir = np.array([0, 0, 0])  # 光源の方向ベクトル
         self.ray_start_pos = np.array([0, 0, 0])  # 光線の始点
@@ -93,6 +96,49 @@ class VectorFunctions:
             3次元グラフを描画するためのAxes3Dオブジェクト。
         """
         return self._ax
+
+    def set_fig_plotly(self, initial_camera=None):
+        """
+        描画関数のためのplotlyのFigureオブジェクトをセットする。
+
+        tmp
+        """
+        if initial_camera is None:
+            # 初期カメラ設定（視点を調整）
+            initial_camera = dict(
+                eye=dict(x=-1.2, y=-1.8, z=0.1),
+                center=dict(x=-0.1, y=0, z=-0.1),
+                up=dict(x=0, y=0, z=1)
+            )
+        else:
+            initial_camera = initial_camera
+        # グラフのレイアウト設定
+        layout = go.Layout(
+            scene=dict(
+                xaxis=dict(title='X [mm]'),
+                yaxis=dict(title='Y [mm]'),
+                zaxis=dict(title='Z [mm]'),
+                camera=initial_camera,
+                aspectmode='data',
+            ),
+        )
+        self._fig_plotly = go.Figure(layout=layout)
+
+    def get_fig_plotly(self):
+        """
+        描画関数のためのplotlyのFigureオブジェクトを取得する。
+
+        tmp
+        """
+        return self._fig_plotly
+
+    def show_fig_plotly(self):
+        """
+        plotlyで描画した図を表示する。
+
+        tmp
+        """
+        self._fig_plotly.show()
 
     # 光学素子描画関数
     # ミラー描画
@@ -480,6 +526,66 @@ class VectorFunctions:
                 Zs1 = (params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
                 self._ax.plot_wireframe(
                     Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+
+    # レンズ描画(plotly)
+    def plot_lens_plotly(self, params):
+        """
+        球面レンズを描画する。
+
+        Parameters
+        ----------
+        params : list or ndarray
+            光学素子(plane)のパラメータを格納したリストまたはndarray。
+            [[pos_x, pos_y, pos_z], [normalV_x, normalV_y, normalV_z], R, Lens_R(axis+-)]
+
+        Returns
+        -------
+        None
+        """
+        geneNum = 30
+        limitTheta = 2*np.pi  # theta生成数
+        limitPhi = np.pi  # phi生成数
+        theta = np.linspace(0, limitTheta, geneNum)
+        phi = np.linspace(0, limitPhi, geneNum)
+
+        argmax_index = np.argmax(np.abs(params[1]))
+
+        # argmax_index==0->x軸向き配置
+        # argmax_index==1->y軸向き配置
+        # argmax_index==2->z軸向き配置
+        tmp_outer_1 = np.outer(np.sin(theta), np.sin(phi))
+        tmp_outer_2 = np.outer(np.ones(np.size(theta)), np.cos(phi))
+        ax_no_opt_1 = params[2] * tmp_outer_1
+        ax_no_opt_2 = params[2] * tmp_outer_2
+        if params[3] <= 0:
+            ax_opt = -(params[3]**2-ax_no_opt_1**2-ax_no_opt_2**2)**0.5 - params[3]
+        elif params[3] > 0:
+            ax_opt = (params[3]**2-ax_no_opt_1**2-ax_no_opt_2**2)**0.5 - params[3]
+        if argmax_index == 0:  # 光軸: x軸
+            Xs = ax_opt
+            Ys = ax_no_opt_1
+            Zs = ax_no_opt_2
+        elif argmax_index == 1:  # 光軸: y軸
+            Xs = ax_no_opt_2
+            Ys = ax_opt
+            Zs = ax_no_opt_1
+        elif argmax_index == 2:  # 光軸: z軸
+            Xs = ax_no_opt_1
+            Ys = ax_no_opt_2
+            Zs = ax_opt
+        # レンズ描画
+        self._fig_plotly.add_trace(go.Surface(
+            x=Xs+params[0][0],
+            y=Ys+params[0][1],
+            z=Zs+params[0][2],
+            showscale=False,
+            colorscale='jet',
+            opacity=0.1,
+            cmin=0,
+            cmax=1,
+            surfacecolor=np.ones_like(Xs)*0.3,  # aqua blue
+        ))
+
 
     # 放物線描画
     def plot_parabola(self, params):
@@ -2261,6 +2367,65 @@ class VectorFunctions:
             return focal_point
 
     # ２点の位置ベクトルから直線を引く関数
+    def plot_line_plotly(self, color='red', alpha=0.7, ms=1.0):
+        """
+        2点の位置ベクトルから直線を引く。
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        length_ray_start_dir = len(self.ray_start_pos)
+        if length_ray_start_dir == 3:
+            startPointV = self.ray_start_pos
+            endPointV = self.ray_end_pos
+            startX = startPointV[0]
+            startY = startPointV[1]
+            startZ = startPointV[2]
+            endX = endPointV[0]
+            endY = endPointV[1]
+            endZ = endPointV[2]
+            # self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
+            #               fmt, ms=ms, linewidth=0.5, color='r', alpha=alpha)
+            self._fig_plotly.add_trace(go.Scatter3d(
+                x=[startX, endX],
+                y=[startY, endY],
+                z=[startZ, endZ],
+                mode='lines+markers',
+                opacity=alpha,
+                line=dict(color=color, width=1),
+                marker=dict(size=ms, color=color),
+                showlegend=False,
+                hoverinfo='none',
+                ))
+        else:
+            startPointV = self.ray_start_pos
+            endPointV = self.ray_end_pos
+            startX = startPointV[:, 0]
+            startY = startPointV[:, 1]
+            startZ = startPointV[:, 2]
+            endX = endPointV[:, 0]
+            endY = endPointV[:, 1]
+            endZ = endPointV[:, 2]
+            for i in range(length_ray_start_dir):
+                # self._ax.plot([startX[i], endX[i]], [startY[i], endY[i],], [startZ[i], endZ[i]],
+                #               fmt, ms=ms, linewidth=0.5, color='r', alpha=alpha)
+                self._fig_plotly.add_trace(go.Scatter3d(
+                    x=[startX[i], endX[i]],
+                    y=[startY[i], endY[i]],
+                    z=[startZ[i], endZ[i]],
+                    mode='lines+markers',
+                    opacity=alpha,
+                    line=dict(color=color, width=1),
+                    marker=dict(size=ms, color=color),
+                    showlegend=False,
+                    hoverinfo='none',
+                    ))
+
     def plot_line_blue(self, alpha=1.0, fmt='o-', ms=2):
         """
         2点の位置ベクトルから直線を引く。
