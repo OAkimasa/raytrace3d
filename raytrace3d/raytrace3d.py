@@ -902,19 +902,19 @@ class VectorFunctions:
 
         if max_index == 0:  # x軸向き配置
             # 光線の終点のy座標とz座標を一度に比較
-            diff = np.abs(ray_end_point[:, [1, 2]] - surface[0][[1, 2]])
+            diff = np.abs(ray_end_point[:, [1, 2]] - np.array(surface[0])[[1, 2]])
             in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
             return in_aperture
 
         if max_index == 1:  # y軸向き配置
             # 光線の終点のx座標とz座標を一度に比較
-            diff = np.abs(ray_end_point[:, [0, 2]] - surface[0][[0, 2]])
+            diff = np.abs(ray_end_point[:, [0, 2]] - np.array(surface[0])[[0, 2]])
             in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
             return in_aperture
 
         if max_index == 2:  # z軸向き配置
             # 光線の終点のx座標とy座標を一度に比較
-            diff = np.abs(ray_end_point[:, [0, 1]] - surface[0][[0, 1]])
+            diff = np.abs(ray_end_point[:, [0, 1]] - np.array(surface[0])[[0, 1]])
             in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
             return in_aperture
 

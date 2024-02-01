@@ -45,7 +45,7 @@ for surface in surface_list:
 
 
 # 始点を生成する
-width = 10
+width = 20
 space = 3
 rayDensity = 1
 rayCenterX = -30
@@ -59,6 +59,11 @@ pointsX = np.array([rayCenterX]*size)
 pointsY = pointsY.reshape(size)*rayDensity
 pointsZ = pointsZ.reshape(size)*rayDensity
 raySPoints = VF.make_points(pointsX, pointsY, pointsZ, size, 3)
+
+aperture_bool = VF._is_in_aperture([[rayCenterX, rayCenterY, rayCenterZ], [1., 0., 0.], 17.91, 0], raySPoints)
+# print("aperture_bool: ", aperture_bool)
+# 入射瞳フィルター
+raySPoints = raySPoints[aperture_bool]
 
 # 光軸の光路長を計算
 chief_ray_optical_path = 0
