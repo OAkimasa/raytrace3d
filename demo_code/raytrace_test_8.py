@@ -10,7 +10,7 @@ start = time.time()
 print("\nraytrace start")
 
 
-N_air = 1.0
+N_air: float = 1.0
 
 
 # ---- 単位は mm ----

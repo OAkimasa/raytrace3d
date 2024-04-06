@@ -1,6 +1,6 @@
 import numpy as np
 import plotly.graph_objs as go
-from scipy.__config__ import show
+
 
 """光学計算や光学系の描画を行うクラス。"""
 
@@ -313,6 +313,59 @@ class VectorFunctions:
             z = np.zeros_like(theta) + Z_center
             self._ax.plot(x, y, z, color='k', linewidth=0.3)
 
+        # # argmax_index==0->x軸向き配置
+        # # argmax_index==1->y軸向き配置
+        # # argmax_index==2->z軸向き配置
+        # axes_mapping = {
+        #     0: {"opt_center": X_center, "no_opt_centers": [Y_center, Z_center], "sub_indexes": [1, 2]},
+        #     1: {"opt_center": Y_center, "no_opt_centers": [Z_center, X_center], "sub_indexes": [2, 0]},
+        #     2: {"opt_center": Z_center, "no_opt_centers": [X_center, Y_center], "sub_indexes": [0, 1]},
+        # }
+        # axis_info = axes_mapping[argmax_index]
+        # opt_center = axis_info["opt_center"]
+        # no_opt_centers = axis_info["no_opt_centers"]
+        # sub_indexes = axis_info["sub_indexes"]
+        # no_opt_center_1, no_opt_center_2 = no_opt_centers
+        # sub_index_1, sub_index_2 = sub_indexes
+
+        # # 円盤生成
+        # geneNum = 200
+        # ax_no_opt_1 = np.linspace(no_opt_center_1-R, no_opt_center_1+R, geneNum)
+        # ax_no_opt_2 = np.linspace(no_opt_center_2-R, no_opt_center_2+R, geneNum)
+        # ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        # if normalV[argmax_index] == 0:
+        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
+        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / 0.01
+        # else:
+        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
+        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / normalV[argmax_index]
+        # for i in range(geneNum):
+        #     for j in range(geneNum):
+        #         if (ax_opt[i][j]-opt_center)**2 + (ax_no_opt_1[i][j]-no_opt_center_1)**2 + (ax_no_opt_2[i][j]-no_opt_center_2)**2 > R**2:
+        #             ax_no_opt_2[i][j] = np.nan
+
+        # # 円盤描画
+        # axes_mapping = {
+        #     0: {"X": ax_opt, "Y": ax_no_opt_1, "Z": ax_no_opt_2},
+        #     1: {"X": ax_no_opt_1, "Y": ax_opt, "Z": ax_no_opt_2},
+        #     2: {"X": ax_no_opt_1, "Y": ax_no_opt_2, "Z": ax_opt},
+        # }
+        # axis_info = axes_mapping[argmax_index]
+        # X, Y, Z = axis_info["X"], axis_info["Y"], axis_info["Z"]
+        # self._ax.plot_wireframe(X, Y, Z, color='lightcyan', linewidth=0.3)
+        # theta = np.linspace(0, 2*np.pi, 100)
+        # opt = np.zeros_like(theta) + opt_center
+        # no_opt_1 = R*np.cos(theta) + no_opt_center_1
+        # no_opt_2 = R*np.sin(theta) + no_opt_center_2
+        # axes_mapping = {
+        #     0: {"X": opt, "Y": no_opt_1, "Z": no_opt_2},
+        #     1: {"X": no_opt_1, "Y": opt, "Z": no_opt_2},
+        #     2: {"X": no_opt_1, "Y": no_opt_2, "Z": opt},
+        # }
+        # axis_info = axes_mapping[argmax_index]
+        # x, y, z = axis_info["X"], axis_info["Y"], axis_info["Z"]
+        # self._ax.plot(x, y, z, color='black', linewidth=0.3)
+
     def plot_plane(self, params, color="gray"):
         """
         ミラー(plane)を描画する。
@@ -390,6 +443,47 @@ class VectorFunctions:
             #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
             self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
 
+        # # argmax_index==0->x軸向き配置
+        # # argmax_index==1->y軸向き配置
+        # # argmax_index==2->z軸向き配置
+        # axes_mapping = {
+        #     0: {"opt_center": X_center, "no_opt_centers": [Y_center, Z_center], "sub_indexes": [1, 2]},
+        #     1: {"opt_center": Y_center, "no_opt_centers": [Z_center, X_center], "sub_indexes": [2, 0]},
+        #     2: {"opt_center": Z_center, "no_opt_centers": [X_center, Y_center], "sub_indexes": [0, 1]},
+        # }
+        # axis_info = axes_mapping[argmax_index]
+        # opt_center = axis_info["opt_center"]
+        # no_opt_centers = axis_info["no_opt_centers"]
+        # sub_indexes = axis_info["sub_indexes"]
+        # no_opt_center_1, no_opt_center_2 = no_opt_centers
+        # sub_index_1, sub_index_2 = sub_indexes
+
+        # # 円盤生成
+        # geneNum = 200
+        # ax_no_opt_1 = np.linspace(no_opt_center_1-R, no_opt_center_1+R, geneNum)
+        # ax_no_opt_2 = np.linspace(no_opt_center_2-R, no_opt_center_2+R, geneNum)
+        # ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        # if normalV[argmax_index] == 0:
+        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
+        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / 0.01
+        # else:
+        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
+        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / normalV[argmax_index]
+        # for i in range(geneNum):
+        #     for j in range(geneNum):
+        #         if (ax_opt[i][j]-opt_center)**2 + (ax_no_opt_1[i][j]-no_opt_center_1)**2 + (ax_no_opt_2[i][j]-no_opt_center_2)**2 > R**2:
+        #             ax_no_opt_2[i][j] = np.nan
+
+        # # 円盤描画
+        # axes_mapping = {
+        #     0: {"X": ax_opt, "Y": ax_no_opt_1, "Z": ax_no_opt_2},
+        #     1: {"X": ax_no_opt_1, "Y": ax_opt, "Z": ax_no_opt_2},
+        #     2: {"X": ax_no_opt_1, "Y": ax_no_opt_2, "Z": ax_opt},
+        # }
+        # axis_info = axes_mapping[argmax_index]
+        # X, Y, Z = axis_info["X"], axis_info["Y"], axis_info["Z"]
+        # self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+
     def plot_square(self, params, color='gray'):
         """
         ミラー(square)を描画する。関数"plot_mirror"の派生型。
@@ -464,6 +558,46 @@ class VectorFunctions:
                         Z[i][j] = np.nan
             self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
 
+        # # argmax_index==0->x軸向き配置
+        # # argmax_index==1->y軸向き配置
+        # # argmax_index==2->z軸向き配置
+        # axes_mapping = {
+        #     0: {"opt_center": X_center, "no_opt_centers": [Y_center, Z_center], "sub_indexes": [1, 2]},
+        #     1: {"opt_center": Y_center, "no_opt_centers": [Z_center, X_center], "sub_indexes": [2, 0]},
+        #     2: {"opt_center": Z_center, "no_opt_centers": [X_center, Y_center], "sub_indexes": [0, 1]},
+        # }
+        # axis_info = axes_mapping[argmax_index]
+        # opt_center = axis_info["opt_center"]
+        # no_opt_centers = axis_info["no_opt_centers"]
+        # sub_indexes = axis_info["sub_indexes"]
+        # no_opt_center_1, no_opt_center_2 = no_opt_centers
+        # sub_index_1, sub_index_2 = sub_indexes
+
+        # # 正方形生成
+        # geneNum = 10
+        # ax_no_opt_1 = np.linspace(no_opt_center_1-a, no_opt_center_1+a, geneNum)
+        # ax_no_opt_2 = np.linspace(no_opt_center_2-a, no_opt_center_2+a, geneNum)
+        # ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        # if normalV[argmax_index] == 0:
+        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
+        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / 0.01
+        # else:
+        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
+        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / normalV[argmax_index]
+        # for i in range(geneNum):
+        #     for j in range(geneNum):
+        #         if (ax_opt[i][j]-opt_center)**2 + (ax_no_opt_1[i][j]-no_opt_center_1)**2 + (ax_no_opt_2[i][j]-no_opt_center_2)**2 > a**2:
+        #             ax_no_opt_2[i][j] = np.nan
+        # # 描画
+        # axes_mapping = {
+        #     0: {"X": ax_opt, "Y": ax_no_opt_1, "Z": ax_no_opt_2},
+        #     1: {"X": ax_no_opt_2, "Y": ax_opt, "Z": ax_no_opt_1},
+        #     2: {"X": ax_no_opt_1, "Y": ax_no_opt_2, "Z": ax_opt},
+        # }
+        # axis_info = axes_mapping[argmax_index]
+        # X, Y, Z = axis_info["X"], axis_info["Y"], axis_info["Z"]
+        # self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+
     # レンズ描画
     def plot_lens(self, params):
         """
@@ -487,45 +621,73 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
-        if argmax_index == 0:
-            Ys = np.outer(np.sin(theta), np.sin(phi))
-            Zs = np.outer(np.ones(np.size(theta)), np.cos(phi))
-            Ys1 = params[2] * Ys
-            Zs1 = params[2] * Zs
-            if params[3] < 0:
-                Xs1 = -(params[3]**2-Ys1**2-Zs1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-            elif params[3] > 0:
-                Xs1 = (params[3]**2-Ys1**2-Zs1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        elif argmax_index == 1:
-            Xs = np.outer(np.sin(theta), np.sin(phi))
-            Zs = np.outer(np.ones(np.size(theta)), np.cos(phi))
-            Xs1 = params[2] * Xs
-            Zs1 = params[2] * Zs
-            if params[3] < 0:
-                Ys1 = -(params[3]**2-Xs1**2-Zs1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-            elif params[3] > 0:
-                Ys1 = (params[3]**2-Xs1**2-Zs1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        elif argmax_index == 2:
-            Xs = np.outer(np.sin(theta), np.sin(phi))
-            Ys = np.outer(np.ones(np.size(theta)), np.cos(phi))
-            Xs1 = params[2] * Xs
-            Ys1 = params[2] * Ys
-            if params[3] < 0:
-                Zs1 = -(params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-            elif params[3] > 0:
-                Zs1 = (params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+        # if argmax_index == 0:
+        #     Ys = np.outer(np.sin(theta), np.sin(phi))
+        #     Zs = np.outer(np.ones(np.size(theta)), np.cos(phi))
+        #     Ys1 = params[2] * Ys
+        #     Zs1 = params[2] * Zs
+        #     if params[3] < 0:
+        #         Xs1 = -(params[3]**2-Ys1**2-Zs1**2)**0.5 - params[3]
+        #         self._ax.plot_wireframe(
+        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+        #     elif params[3] > 0:
+        #         Xs1 = (params[3]**2-Ys1**2-Zs1**2)**0.5 - params[3]
+        #         self._ax.plot_wireframe(
+        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+        # elif argmax_index == 1:
+        #     Xs = np.outer(np.sin(theta), np.sin(phi))
+        #     Zs = np.outer(np.ones(np.size(theta)), np.cos(phi))
+        #     Xs1 = params[2] * Xs
+        #     Zs1 = params[2] * Zs
+        #     if params[3] < 0:
+        #         Ys1 = -(params[3]**2-Xs1**2-Zs1**2)**0.5 - params[3]
+        #         self._ax.plot_wireframe(
+        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+        #     elif params[3] > 0:
+        #         Ys1 = (params[3]**2-Xs1**2-Zs1**2)**0.5 - params[3]
+        #         self._ax.plot_wireframe(
+        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+        # elif argmax_index == 2:
+        #     Xs = np.outer(np.sin(theta), np.sin(phi))
+        #     Ys = np.outer(np.ones(np.size(theta)), np.cos(phi))
+        #     Xs1 = params[2] * Xs
+        #     Ys1 = params[2] * Ys
+        #     if params[3] < 0:
+        #         Zs1 = -(params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
+        #         self._ax.plot_wireframe(
+        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+        #     elif params[3] > 0:
+        #         Zs1 = (params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
+        #         self._ax.plot_wireframe(
+        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+
+
+        # argmax_index==0->x軸向き配置
+        # argmax_index==1->y軸向き配置
+        # argmax_index==2->z軸向き配置
+        tmp_outer_1 = np.outer(np.sin(theta), np.sin(phi))
+        tmp_outer_2 = np.outer(np.ones(np.size(theta)), np.cos(phi))
+        ax_no_opt_1 = params[2] * tmp_outer_1
+        ax_no_opt_2 = params[2] * tmp_outer_2
+        if params[3] <= 0:
+            ax_opt = -(params[3]**2-ax_no_opt_1**2-ax_no_opt_2**2)**0.5 - params[3]
+        elif params[3] > 0:
+            ax_opt = (params[3]**2-ax_no_opt_1**2-ax_no_opt_2**2)**0.5 - params[3]
+        if argmax_index == 0:  # 光軸: x軸
+            Xs = ax_opt
+            Ys = ax_no_opt_1
+            Zs = ax_no_opt_2
+        elif argmax_index == 1:  # 光軸: y軸
+            Xs = ax_no_opt_2
+            Ys = ax_opt
+            Zs = ax_no_opt_1
+        elif argmax_index == 2:  # 光軸: z軸
+            Xs = ax_no_opt_1
+            Ys = ax_no_opt_2
+            Zs = ax_opt
+        # レンズ描画
+        self._ax.plot_wireframe(
+            Xs+params[0][0], Ys+params[0][1], Zs+params[0][2], linewidth=0.1)
 
     # レンズ描画(plotly)
     def plot_lens_plotly(self, params):
