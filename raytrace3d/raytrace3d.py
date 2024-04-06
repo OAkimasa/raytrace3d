@@ -620,48 +620,6 @@ class VectorFunctions:
         phi = np.linspace(0, limitPhi, geneNum)
 
         argmax_index = np.argmax(np.abs(params[1]))
-
-        # if argmax_index == 0:
-        #     Ys = np.outer(np.sin(theta), np.sin(phi))
-        #     Zs = np.outer(np.ones(np.size(theta)), np.cos(phi))
-        #     Ys1 = params[2] * Ys
-        #     Zs1 = params[2] * Zs
-        #     if params[3] < 0:
-        #         Xs1 = -(params[3]**2-Ys1**2-Zs1**2)**0.5 - params[3]
-        #         self._ax.plot_wireframe(
-        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        #     elif params[3] > 0:
-        #         Xs1 = (params[3]**2-Ys1**2-Zs1**2)**0.5 - params[3]
-        #         self._ax.plot_wireframe(
-        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        # elif argmax_index == 1:
-        #     Xs = np.outer(np.sin(theta), np.sin(phi))
-        #     Zs = np.outer(np.ones(np.size(theta)), np.cos(phi))
-        #     Xs1 = params[2] * Xs
-        #     Zs1 = params[2] * Zs
-        #     if params[3] < 0:
-        #         Ys1 = -(params[3]**2-Xs1**2-Zs1**2)**0.5 - params[3]
-        #         self._ax.plot_wireframe(
-        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        #     elif params[3] > 0:
-        #         Ys1 = (params[3]**2-Xs1**2-Zs1**2)**0.5 - params[3]
-        #         self._ax.plot_wireframe(
-        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        # elif argmax_index == 2:
-        #     Xs = np.outer(np.sin(theta), np.sin(phi))
-        #     Ys = np.outer(np.ones(np.size(theta)), np.cos(phi))
-        #     Xs1 = params[2] * Xs
-        #     Ys1 = params[2] * Ys
-        #     if params[3] < 0:
-        #         Zs1 = -(params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
-        #         self._ax.plot_wireframe(
-        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        #     elif params[3] > 0:
-        #         Zs1 = (params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
-        #         self._ax.plot_wireframe(
-        #             Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-
-
         # argmax_index==0->x軸向き配置
         # argmax_index==1->y軸向き配置
         # argmax_index==2->z軸向き配置
@@ -952,12 +910,6 @@ class VectorFunctions:
         result : ndarray
             (x,y,z)の組を格納したndarray。shapeは(shape0, shape1)。
         """
-        # result = [None]*(len(point0)+len(point1)+len(point2))
-        # result[::3] = point0
-        # result[1::3] = point1
-        # result[2::3] = point2
-        # result = np.array(result)
-        # result = result.reshape(shape0, shape1)
         result = np.column_stack((point0, point1, point2))
         return result
 
@@ -1015,50 +967,6 @@ class VectorFunctions:
             光学素子の中心からaperture_Rの範囲内にあるかどうか。
             光線の数だけbool値を格納したリストを返す。
         """
-        # max_index = self._max_index(surface[1])
-        # length_ray_end_point = len(ray_end_point)
-        # aperture_R = surface[2]
-        # if length_ray_end_point == 3:  # 光線1本
-        #     if max_index == 0:  # x軸向き配置
-        #         if np.sqrt((ray_end_point[1]-surface[0][1])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
-        #             return True
-        #         else:
-        #             return False
-        #     if max_index == 1:  # y軸向き配置
-        #         if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
-        #             return True
-        #         else:
-        #             return False
-        #     if max_index == 2:  # z軸向き配置
-        #         if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[1]-surface[0][1])**2) <= aperture_R:
-        #             return True
-        #         else:
-        #             return False
-        # else:
-        #     if max_index == 0:  # x軸向き配置
-        #         bool_list = []
-        #         for i in range(length_ray_end_point):
-        #             if np.sqrt((ray_end_point[i][1]-surface[0][1])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
-        #                 bool_list.append(True)
-        #             else:
-        #                 bool_list.append(False)
-        #         return bool_list
-        #     if max_index == 1:  # y軸向き配置
-        #         bool_list = []
-        #         for i in range(length_ray_end_point):
-        #             if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
-        #                 bool_list.append(True)
-        #             else:
-        #                 bool_list.append(False)
-        #         return bool_list
-        #     if max_index == 2:  # z軸向き配置
-        #         bool_list = []
-        #         for i in range(length_ray_end_point):
-        #             if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][1]-surface[0][1])**2) <= aperture_R:
-        #                 bool_list.append(True)
-        #             else:
-        #                 bool_list.append(False)
-        #         return bool_list
         max_index = self._max_index(surface[1])
         aperture_R = surface[2]
 
@@ -1095,24 +1003,6 @@ class VectorFunctions:
             光学素子の中心からaperture_Rの範囲内にあるかどうか。
             光線の数だけbool値を格納したリストを返す。
         """
-        # max_index = self._max_index(surface[1])
-        # length_ray_end_point = len(ray_end_point)
-        # aperture_R = surface[2]
-        # if length_ray_end_point == 3:
-        #     if max_index == 0:
-        #         if abs(ray_end_point[1]-surface[0][1]) <= aperture_R and abs(ray_end_point[2]-surface[0][2]) <= aperture_R:
-        #             return True
-        #         else:
-        #             return False
-        # else:
-        #     if max_index == 0:
-        #         bool_list = []
-        #         for i in range(length_ray_end_point):
-        #             if abs(ray_end_point[i][1]-surface[0][1]) <= aperture_R and abs(ray_end_point[i][2]-surface[0][2]) <= aperture_R:
-        #                 bool_list.append(True)
-        #             else:
-        #                 bool_list.append(False)
-        #         return bool_list
         max_index = self._max_index(surface[1])
         aperture_R = surface[2]
 
@@ -1237,39 +1127,6 @@ class VectorFunctions:
             self.optical_path_length += T * self._refractive_index_calc_optical_path_length
             self._normalV_refract_or_reflect = np.tile(
                 nV, (length_ray_start_dir, 1))
-        # centerV = self._surface_pos
-        # normalV = self._normalV_optical_element
-        # length_ray_start_dir = len(self.ray_start_dir)
-        # #print("length_ray_start_dir", length_ray_start_dir)
-        # if length_ray_start_dir == 3:
-        #     nV = np.array(normalV)/np.linalg.norm(normalV)
-        #     T = (np.dot(centerV, nV)-np.dot(self.ray_start_pos, nV)) / \
-        #         (np.dot(self.ray_start_dir, nV))
-        #     self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
-        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!2", np.shape(self.ray_end_pos))
-        #     self.optical_path_length += T*self._refractive_index_calc_optical_path_length
-        #     self._normalV_refract_or_reflect = nV
-        # else:  # 光線群の場合
-        #     nV = np.array(normalV)/np.linalg.norm(normalV)
-        #     T = []
-        #     for i in range(length_ray_start_dir):
-        #         if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
-        #             T_tmp = 0
-        #             print("VF, raytrace_plane, T_tmp", T_tmp)
-        #             T.append(T_tmp)
-        #         else:
-        #             T_tmp = (np.dot(centerV, nV)-np.dot(np.array(self.ray_start_pos[i]), nV)) / (
-        #                 np.dot(np.array(self.ray_start_dir[i]), nV))
-        #             T.append(T_tmp)
-        #     T = np.array(T)
-        #     #T = [(np.dot(centerV, nV)-np.dot(self.ray_start_pos[i], nV)) / (np.dot(self.ray_start_dir[i], nV)) for i in range(length_ray_start_dir)]
-        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!1", np.shape(self.ray_end_pos), np.shape(T), np.shape(self.ray_end_dir))
-        #     self.ray_end_pos = self.ray_start_pos + \
-        #         np.array([V*T for V, T in zip(self.ray_start_dir, T)])
-        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!2", np.shape(self.ray_end_pos), np.shape(T), np.shape(self.ray_end_dir), np.shape([V*T for V, T in zip(self.ray_start_dir, T)]))
-        #     self.optical_path_length += np.array(T) * \
-        #         self._refractive_index_calc_optical_path_length
-        #     self._normalV_refract_or_reflect = [nV]*length_ray_start_dir
 
     # 球面のレイトレーシング
     def raytrace_sphere(self):
@@ -1285,87 +1142,6 @@ class VectorFunctions:
         -------
         None
         """
-        # lens_pos = self._surface_pos
-        # lens_R = self._lens_or_parabola_R
-        # length_ray_start_dir = len(self.ray_start_pos)
-        # if length_ray_start_dir == 3:
-        #     tmp_V = np.zeros_like(self.ray_start_pos)
-        #     tmp_index = self._max_index(self.ray_start_dir)
-        #     tmp_V[tmp_index] = lens_R
-        #     test_dot = np.dot(tmp_V, self.ray_start_dir)
-        #     tmp_V = np.zeros_like(self.ray_start_pos)
-        #     tmp_index = self._max_index(self.ray_start_dir)
-        #     tmp_V[tmp_index] = lens_R
-        #     shiftV = lens_pos - tmp_V
-        #     #print("VFtest!!!!, shiftV =", shiftV)
-        #     if test_dot > 0:  # 凹レンズ
-        #         ray_pos = self.ray_start_pos - shiftV
-        #         A = np.dot(self.ray_start_dir, self.ray_start_dir)
-        #         B = np.dot(self.ray_start_dir, ray_pos)
-        #         C = np.dot(ray_pos, ray_pos) - abs(lens_R)**2
-        #         T = (-B + np.sqrt(B**2 - A*C)) / A
-        #     elif test_dot < 0:  # 凸レンズ
-        #         ray_pos = self.ray_start_pos - shiftV
-        #         A = np.dot(self.ray_start_dir, self.ray_start_dir)
-        #         B = np.dot(self.ray_start_dir, ray_pos)
-        #         C = np.dot(ray_pos, ray_pos) - abs(lens_R)**2
-        #         T = (-B - np.sqrt(B**2 - A*C)) / A
-        #     else:
-        #         T = np.nan
-        #     self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
-        #     self.optical_path_length += np.array(T) * \
-        #         self._refractive_index_calc_optical_path_length
-        #     self._normalV_refract_or_reflect = self._calc_normalV_sphere()
-        # else:  # 光線群の場合
-        #     tmp_V = np.zeros_like(self.ray_start_pos)
-        #     tmp_index = self._max_index(self._normalV_optical_element)
-        #     tmp_V[:, tmp_index] = lens_R
-        #     test_dot = np.dot(tmp_V[0], self.ray_start_dir[0])
-        #     tmp_V = np.zeros(3)
-        #     #tmp_index = self._max_index(self.ray_start_dir[0])
-        #     tmp_index = self._max_index(self._normalV_optical_element)
-        #     tmp_V[tmp_index] = lens_R
-        #     shiftV = lens_pos - tmp_V
-        #     #print("VFtest!!!!, shiftV =", shiftV)
-        #     if test_dot > 0:  # 凹レンズ
-        #         ray_pos = self.ray_start_pos - \
-        #             np.array([shiftV]*length_ray_start_dir)
-        #         A = np.diag(np.dot(self.ray_start_dir,
-        #                            np.array(self.ray_start_dir).T))
-        #         B = np.diag(np.dot(self.ray_start_dir, ray_pos.T))
-        #         C = np.diag(np.dot(ray_pos, ray_pos.T)) - abs(lens_R)**2
-        #         T = []
-        #         for i in range(length_ray_start_dir):
-        #             if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
-        #                 T_tmp = 0
-        #                 T.append(T_tmp)
-        #             else:
-        #                 T_tmp = (-B[i] + np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
-        #                 T.append(T_tmp)
-        #         T = np.array(T)
-        #     elif test_dot < 0:  # 凸レンズ
-        #         ray_pos = self.ray_start_pos - \
-        #             np.array([shiftV]*length_ray_start_dir)
-        #         A = np.diag(np.dot(self.ray_start_dir,
-        #                            np.array(self.ray_start_dir).T))
-        #         B = np.diag(np.dot(self.ray_start_dir, ray_pos.T))
-        #         C = np.diag(np.dot(ray_pos, ray_pos.T)) - abs(lens_R)**2
-        #         #T = (-B - np.sqrt(B**2 - A*C)) / A
-        #         T = []
-        #         for i in range(length_ray_start_dir):
-        #             if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
-        #                 T_tmp = 0
-        #                 T.append(T_tmp)
-        #             else:
-        #                 T_tmp = (-B[i] - np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
-        #                 T.append(T_tmp)
-        #     else:
-        #         T = np.zeros(length_ray_start_dir)
-        #     self.ray_end_pos = self.ray_start_pos + \
-        #         [V*T for V, T in zip(self.ray_start_dir, T)]
-        #     self.optical_path_length += np.array(T) * \
-        #         self._refractive_index_calc_optical_path_length
-        #     self._normalV_refract_or_reflect = self._calc_normalV_sphere()
         lens_pos = self._surface_pos
         lens_R = self._lens_or_parabola_R
         length_ray_start_dir = len(self.ray_start_pos)
