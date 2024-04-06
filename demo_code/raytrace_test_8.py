@@ -198,4 +198,18 @@ VF.plot_line_plotly(color='red', alpha=0.3)  # 光線描画
 VF.get_surface()  # 評価面を取得
 
 VF.show_fig_plotly()  # plotlyで描画
+
+# 光路差の計算
+optical_path_length = VF.optical_path_length  # mm 光路差を取得
+OPD = optical_path_length - chief_ray_optical_path_list[-1]  # mm
+# print("ray_start_pos_init.shape: ", ray_start_pos_init.shape)
+# print("optical_path_length.shape: ", optical_path_length.shape)
+# plotlyで描画
+fig = go.Figure()
+fig.add_trace(go.Scatter3d(x=ray_start_pos_init[:, 1], y=ray_start_pos_init[:, 2], z=OPD,
+                            mode='markers', marker=dict(size=1, color='blue')))
+fig.update_layout(scene=dict(aspectratio=dict(x=1, y=1, z=1),
+                             aspectmode='manual'))
+fig.show()
+
 print("run time: {0:.3f} sec".format(time.time() - start))
