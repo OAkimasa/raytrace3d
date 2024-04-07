@@ -1,4 +1,6 @@
 import numpy as np
+import plotly.graph_objs as go
+
 
 """光学計算や光学系の描画を行うクラス。"""
 
@@ -45,6 +47,7 @@ class VectorFunctions:
 
     def __init__(self):
         self._ax = None  # plotline関数のため
+        self._fig_plotly = None  # plotlyで描画
         self.ray_init_pos = np.array([0, 0, 0])  # 光源の位置ベクトル
         self.ray_init_dir = np.array([0, 0, 0])  # 光源の方向ベクトル
         self.ray_start_pos = np.array([0, 0, 0])  # 光線の始点
@@ -94,6 +97,49 @@ class VectorFunctions:
         """
         return self._ax
 
+    def set_fig_plotly(self, initial_camera=None):
+        """
+        描画関数のためのplotlyのFigureオブジェクトをセットする。
+
+        tmp
+        """
+        if initial_camera is None:
+            # 初期カメラ設定（視点を調整）
+            initial_camera = dict(
+                eye=dict(x=-1.2, y=-1.8, z=0.1),
+                center=dict(x=-0.1, y=0, z=-0.1),
+                up=dict(x=0, y=0, z=1)
+            )
+        else:
+            initial_camera = initial_camera
+        # グラフのレイアウト設定
+        layout = go.Layout(
+            scene=dict(
+                xaxis=dict(title='X [mm]'),
+                yaxis=dict(title='Y [mm]'),
+                zaxis=dict(title='Z [mm]'),
+                camera=initial_camera,
+                aspectmode='data',
+            ),
+        )
+        self._fig_plotly = go.Figure(layout=layout)
+
+    def get_fig_plotly(self):
+        """
+        描画関数のためのplotlyのFigureオブジェクトを取得する。
+
+        tmp
+        """
+        return self._fig_plotly
+
+    def show_fig_plotly(self):
+        """
+        plotlyで描画した図を表示する。
+
+        tmp
+        """
+        self._fig_plotly.show()
+
     # 光学素子描画関数
     # ミラー描画
     def plot_mirror(self, params, color='gray'):
@@ -120,60 +166,50 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
+        # 円盤生成
+        geneNum = 200
+        if argmax_index == 0:  # 光軸:x軸
+            ax_opt_center = X_center
+            ax_no_opt_1_center = Y_center
+            ax_no_opt_2_center = Z_center
+            nV_arg_opt = normalV[0]
+            nV_arg_no_opt_1 = normalV[1]
+            nV_arg_no_opt_2 = normalV[2]
+        elif argmax_index == 1:  # 光軸:y軸
+            ax_opt_center = Y_center
+            ax_no_opt_1_center = Z_center
+            ax_no_opt_2_center = X_center
+            nV_arg_opt = normalV[1]
+            nV_arg_no_opt_1 = normalV[2]
+            nV_arg_no_opt_2 = normalV[0]
+        elif argmax_index == 2:  # 光軸:z軸
+            ax_opt_center = Z_center
+            ax_no_opt_1_center = X_center
+            ax_no_opt_2_center = Y_center
+            nV_arg_opt = normalV[2]
+            nV_arg_no_opt_1 = normalV[0]
+            nV_arg_no_opt_2 = normalV[1]
+        ax_no_opt_1 = np.linspace(ax_no_opt_1_center-R, ax_no_opt_1_center+R, geneNum)
+        ax_no_opt_2 = np.linspace(ax_no_opt_2_center-R, ax_no_opt_2_center+R, geneNum)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if nV_arg_opt == 0:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / 0.01
+        else:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / nV_arg_opt
+
+        for i in range(geneNum):
+            for j in range(geneNum):
+                if (ax_opt[i][j]-ax_opt_center)**2 + (ax_no_opt_1[i][j]-ax_no_opt_1_center)**2 + (ax_no_opt_2[i][j]-ax_no_opt_2_center)**2 > R**2:
+                    ax_no_opt_2[i][j] = np.nan
+
         if argmax_index == 0:
-            # 円盤生成
-            geneNum = 200
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            Y, Z = np.meshgrid(y, z)
-            if normalV[0] == 0:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[0]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color=color, linewidth=0.3)
         elif argmax_index == 1:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            X, Z = np.meshgrid(x, z)
-            if normalV[1] == 0:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[1]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color=color, linewidth=0.3)
         elif argmax_index == 2:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            X, Y = np.meshgrid(x, y)
-            if normalV[2] == 0:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / 0.01
-            else:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / normalV[2]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color=color, linewidth=0.3)
 
     def plot_window(self, params):
         """
@@ -197,75 +233,61 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
+        # 円盤生成
+        geneNum = 200
+        if argmax_index == 0:  # 光軸:x軸
+            ax_opt_center = X_center
+            ax_no_opt_1_center = Y_center
+            ax_no_opt_2_center = Z_center
+            nV_arg_opt = normalV[0]
+            nV_arg_no_opt_1 = normalV[1]
+            nV_arg_no_opt_2 = normalV[2]
+        elif argmax_index == 1:  # 光軸:y軸
+            ax_opt_center = Y_center
+            ax_no_opt_1_center = Z_center
+            ax_no_opt_2_center = X_center
+            nV_arg_opt = normalV[1]
+            nV_arg_no_opt_1 = normalV[2]
+            nV_arg_no_opt_2 = normalV[0]
+        elif argmax_index == 2:  # 光軸:z軸
+            ax_opt_center = Z_center
+            ax_no_opt_1_center = X_center
+            ax_no_opt_2_center = Y_center
+            nV_arg_opt = normalV[2]
+            nV_arg_no_opt_1 = normalV[0]
+            nV_arg_no_opt_2 = normalV[1]
+        ax_no_opt_1 = np.linspace(ax_no_opt_1_center-R, ax_no_opt_1_center+R, geneNum)
+        ax_no_opt_2 = np.linspace(ax_no_opt_2_center-R, ax_no_opt_2_center+R, geneNum)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if nV_arg_opt == 0:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / 0.01
+        else:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / nV_arg_opt
+
+        for i in range(geneNum):
+            for j in range(geneNum):
+                if (ax_opt[i][j]-ax_opt_center)**2 + (ax_no_opt_1[i][j]-ax_no_opt_1_center)**2 + (ax_no_opt_2[i][j]-ax_no_opt_2_center)**2 > R**2:
+                    ax_no_opt_2[i][j] = np.nan
+
         if argmax_index == 0:
-            # 円盤生成
-            geneNum = 200
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            Y, Z = np.meshgrid(y, z)
-            if normalV[0] == 0:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[0]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color='lightcyan', linewidth=0.3)
-            theta = np.linspace(0, 2*np.pi, 100)
-            x = np.zeros_like(theta) + X_center
-            y = np.cos(theta)*R + Y_center
-            z = np.sin(theta)*R + Z_center
-            self._ax.plot(x, y, z, color='black', linewidth=0.3)
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color='lightcyan', linewidth=0.3)
         elif argmax_index == 1:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            X, Z = np.meshgrid(x, z)
-            if normalV[1] == 0:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[1]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Y[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color='lightcyan', linewidth=0.3)
-            theta = np.linspace(0, 2*np.pi, 100)
-            x = R*np.cos(theta) + X_center
-            y = np.zeros_like(theta) + Y_center
-            z = R*np.sin(theta) + Z_center
-            self._ax.plot(x, y, z, color='k', linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color='lightcyan', linewidth=0.3)
         elif argmax_index == 2:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            X, Y = np.meshgrid(x, y)
-            if normalV[2] == 0:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / 0.01
-            else:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / normalV[2]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color='lightcyan', linewidth=0.3)
-            theta = np.linspace(0, 2*np.pi, 100)
-            x = R*np.cos(theta) + X_center
-            y = R*np.sin(theta) + Y_center
-            z = np.zeros_like(theta) + Z_center
-            self._ax.plot(x, y, z, color='k', linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color='lightcyan', linewidth=0.3)
+
+        theta = np.linspace(0, 2*np.pi, 100)
+        ax_opt = np.zeros_like(theta) + ax_opt_center
+        ax_no_opt_1 = R*np.cos(theta) + ax_no_opt_1_center
+        ax_no_opt_2 = R*np.sin(theta) + ax_no_opt_2_center
+        if argmax_index == 0:
+            self._ax.plot(ax_opt, ax_no_opt_1, ax_no_opt_2, color='black', linewidth=0.3)
+        elif argmax_index == 1:
+            self._ax.plot(ax_no_opt_2, ax_opt, ax_no_opt_1, color='black', linewidth=0.3)
+        elif argmax_index == 2:
+            self._ax.plot(ax_no_opt_1, ax_no_opt_2, ax_opt, color='black', linewidth=0.3)
 
     def plot_plane(self, params, color="gray"):
         """
@@ -289,60 +311,50 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
+        # 円盤生成
+        geneNum = 200
+        if argmax_index == 0:  # 光軸:x軸
+            ax_opt_center = X_center
+            ax_no_opt_1_center = Y_center
+            ax_no_opt_2_center = Z_center
+            nV_arg_opt = normalV[0]
+            nV_arg_no_opt_1 = normalV[1]
+            nV_arg_no_opt_2 = normalV[2]
+        elif argmax_index == 1:  # 光軸:y軸
+            ax_opt_center = Y_center
+            ax_no_opt_1_center = Z_center
+            ax_no_opt_2_center = X_center
+            nV_arg_opt = normalV[1]
+            nV_arg_no_opt_1 = normalV[2]
+            nV_arg_no_opt_2 = normalV[0]
+        elif argmax_index == 2:  # 光軸:z軸
+            ax_opt_center = Z_center
+            ax_no_opt_1_center = X_center
+            ax_no_opt_2_center = Y_center
+            nV_arg_opt = normalV[2]
+            nV_arg_no_opt_1 = normalV[0]
+            nV_arg_no_opt_2 = normalV[1]
+        ax_no_opt_1 = np.linspace(ax_no_opt_1_center-R, ax_no_opt_1_center+R, geneNum)
+        ax_no_opt_2 = np.linspace(ax_no_opt_2_center-R, ax_no_opt_2_center+R, geneNum)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if nV_arg_opt == 0:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / 0.01
+        else:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / nV_arg_opt
+
+        for i in range(geneNum):
+            for j in range(geneNum):
+                if (ax_opt[i][j]-ax_opt_center)**2 + (ax_no_opt_1[i][j]-ax_no_opt_1_center)**2 + (ax_no_opt_2[i][j]-ax_no_opt_2_center)**2 > R**2:
+                    ax_no_opt_2[i][j] = np.nan
+
         if argmax_index == 0:
-            # 円盤生成
-            geneNum = 200
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            Y, Z = np.meshgrid(y, z)
-            if normalV[0] == 0:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[0]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color=color, linewidth=0.3)
         elif argmax_index == 1:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            X, Z = np.meshgrid(x, z)
-            if normalV[1] == 0:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[1]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color=color, linewidth=0.3)
         elif argmax_index == 2:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            X, Y = np.meshgrid(x, y)
-            if normalV[2] == 0:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / 0.01
-            else:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / normalV[2]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color=color, linewidth=0.3)
 
     def plot_square(self, params, color='gray'):
         """
@@ -366,57 +378,52 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
+        # 正方形生成
+        geneNum = 10
+
         if argmax_index == 0:
-            # 正方形生成
-            geneNum = 10
-            y = np.linspace(Y_center-a, Y_center+a, geneNum)
-            z = np.linspace(Z_center-a, Z_center+a, geneNum)
-            Y, Z = np.meshgrid(y, z)
-            if normalV[0] == 0:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[0]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
-                        Z[i][j] = np.nan
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+            ax_opt_center = X_center
+            ax_no_opt_1_center = Y_center
+            ax_no_opt_2_center = Z_center
+            nV_arg_opt = normalV[0]
+            nV_arg_no_opt_1 = normalV[1]
+            nV_arg_no_opt_2 = normalV[2]
         elif argmax_index == 1:
-            # 正方形生成
-            geneNum = 10
-            x = np.linspace(X_center-a, X_center+a, geneNum)
-            z = np.linspace(Z_center-a, Z_center+a, geneNum)
-            X, Z = np.meshgrid(x, z)
-            if normalV[1] == 0:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[1]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
-                        Z[i][j] = np.nan
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+            ax_opt_center = Y_center
+            ax_no_opt_1_center = Z_center
+            ax_no_opt_2_center = X_center
+            nV_arg_opt = normalV[1]
+            nV_arg_no_opt_1 = normalV[2]
+            nV_arg_no_opt_2 = normalV[0]
         elif argmax_index == 2:
-            # 正方形生成
-            geneNum = 10
-            x = np.linspace(X_center-a, X_center+a, geneNum)
-            y = np.linspace(Y_center-a, Y_center+a, geneNum)
-            X, Y = np.meshgrid(x, y)
-            if normalV[2] == 0:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / 0.01
-            else:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / normalV[2]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
-                        Z[i][j] = np.nan
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+            ax_opt_center = Z_center
+            ax_no_opt_1_center = X_center
+            ax_no_opt_2_center = Y_center
+            nV_arg_opt = normalV[2]
+            nV_arg_no_opt_1 = normalV[0]
+            nV_arg_no_opt_2 = normalV[1]
+
+        ax_no_opt_1 = np.linspace(ax_no_opt_1_center-a, ax_no_opt_1_center+a, geneNum)
+        ax_no_opt_2 = np.linspace(ax_no_opt_2_center-a, ax_no_opt_2_center+a, geneNum)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if nV_arg_opt == 0:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / 0.01
+        else:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / nV_arg_opt
+
+        for i in range(geneNum):
+            for j in range(geneNum):
+                if (ax_opt[i][j]-ax_opt_center) > a or (ax_no_opt_1[i][j]-ax_no_opt_1_center) > a or (ax_no_opt_2[i][j]-ax_no_opt_2_center) > a:
+                    ax_no_opt_2[i][j] = np.nan
+
+        if argmax_index == 0:
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color=color, linewidth=0.3)
+        elif argmax_index == 1:
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color=color, linewidth=0.3)
+        elif argmax_index == 2:
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color=color, linewidth=0.3)
 
     # レンズ描画
     def plot_lens(self, params):
@@ -440,46 +447,92 @@ class VectorFunctions:
         phi = np.linspace(0, limitPhi, geneNum)
 
         argmax_index = np.argmax(np.abs(params[1]))
+        # argmax_index==0->x軸向き配置
+        # argmax_index==1->y軸向き配置
+        # argmax_index==2->z軸向き配置
+        tmp_outer_1 = np.outer(np.sin(theta), np.sin(phi))
+        tmp_outer_2 = np.outer(np.ones(np.size(theta)), np.cos(phi))
+        ax_no_opt_1 = params[2] * tmp_outer_1
+        ax_no_opt_2 = params[2] * tmp_outer_2
+        if params[3] <= 0:
+            ax_opt = -(params[3]**2-ax_no_opt_1**2-ax_no_opt_2**2)**0.5 - params[3]
+        elif params[3] > 0:
+            ax_opt = (params[3]**2-ax_no_opt_1**2-ax_no_opt_2**2)**0.5 - params[3]
+        if argmax_index == 0:  # 光軸: x軸
+            Xs = ax_opt
+            Ys = ax_no_opt_1
+            Zs = ax_no_opt_2
+        elif argmax_index == 1:  # 光軸: y軸
+            Xs = ax_no_opt_2
+            Ys = ax_opt
+            Zs = ax_no_opt_1
+        elif argmax_index == 2:  # 光軸: z軸
+            Xs = ax_no_opt_1
+            Ys = ax_no_opt_2
+            Zs = ax_opt
+        # レンズ描画
+        self._ax.plot_wireframe(
+            Xs+params[0][0], Ys+params[0][1], Zs+params[0][2], linewidth=0.1)
 
-        if argmax_index == 0:
-            Ys = np.outer(np.sin(theta), np.sin(phi))
-            Zs = np.outer(np.ones(np.size(theta)), np.cos(phi))
-            Ys1 = params[2] * Ys
-            Zs1 = params[2] * Zs
-            if params[3] < 0:
-                Xs1 = -(params[3]**2-Ys1**2-Zs1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-            elif params[3] > 0:
-                Xs1 = (params[3]**2-Ys1**2-Zs1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        elif argmax_index == 1:
-            Xs = np.outer(np.sin(theta), np.sin(phi))
-            Zs = np.outer(np.ones(np.size(theta)), np.cos(phi))
-            Xs1 = params[2] * Xs
-            Zs1 = params[2] * Zs
-            if params[3] < 0:
-                Ys1 = -(params[3]**2-Xs1**2-Zs1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-            elif params[3] > 0:
-                Ys1 = (params[3]**2-Xs1**2-Zs1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-        elif argmax_index == 2:
-            Xs = np.outer(np.sin(theta), np.sin(phi))
-            Ys = np.outer(np.ones(np.size(theta)), np.cos(phi))
-            Xs1 = params[2] * Xs
-            Ys1 = params[2] * Ys
-            if params[3] < 0:
-                Zs1 = -(params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
-            elif params[3] > 0:
-                Zs1 = (params[3]**2-Xs1**2-Ys1**2)**0.5 - params[3]
-                self._ax.plot_wireframe(
-                    Xs1+params[0][0], Ys1+params[0][1], Zs1+params[0][2], linewidth=0.1)
+    # レンズ描画(plotly)
+    def plot_lens_plotly(self, params):
+        """
+        球面レンズを描画する。
+
+        Parameters
+        ----------
+        params : list or ndarray
+            光学素子(plane)のパラメータを格納したリストまたはndarray。
+            [[pos_x, pos_y, pos_z], [normalV_x, normalV_y, normalV_z], R, Lens_R(axis+-)]
+
+        Returns
+        -------
+        None
+        """
+        geneNum = 30
+        limitTheta = 2*np.pi  # theta生成数
+        limitPhi = np.pi  # phi生成数
+        theta = np.linspace(0, limitTheta, geneNum)
+        phi = np.linspace(0, limitPhi, geneNum)
+
+        argmax_index = np.argmax(np.abs(params[1]))
+
+        # argmax_index==0->x軸向き配置
+        # argmax_index==1->y軸向き配置
+        # argmax_index==2->z軸向き配置
+        tmp_outer_1 = np.outer(np.sin(theta), np.sin(phi))
+        tmp_outer_2 = np.outer(np.ones(np.size(theta)), np.cos(phi))
+        ax_no_opt_1 = params[2] * tmp_outer_1
+        ax_no_opt_2 = params[2] * tmp_outer_2
+        if params[3] <= 0:
+            ax_opt = -(params[3]**2-ax_no_opt_1**2-ax_no_opt_2**2)**0.5 - params[3]
+        elif params[3] > 0:
+            ax_opt = (params[3]**2-ax_no_opt_1**2-ax_no_opt_2**2)**0.5 - params[3]
+        if argmax_index == 0:  # 光軸: x軸
+            Xs = ax_opt
+            Ys = ax_no_opt_1
+            Zs = ax_no_opt_2
+        elif argmax_index == 1:  # 光軸: y軸
+            Xs = ax_no_opt_2
+            Ys = ax_opt
+            Zs = ax_no_opt_1
+        elif argmax_index == 2:  # 光軸: z軸
+            Xs = ax_no_opt_1
+            Ys = ax_no_opt_2
+            Zs = ax_opt
+        # レンズ描画
+        self._fig_plotly.add_trace(go.Surface(
+            x=Xs+params[0][0],
+            y=Ys+params[0][1],
+            z=Zs+params[0][2],
+            showscale=False,
+            colorscale='jet',
+            opacity=0.1,
+            cmin=0,
+            cmax=1,
+            surfacecolor=np.ones_like(Xs)*0.3,  # aqua blue
+        ))
+
 
     # 放物線描画
     def plot_parabola(self, params):
@@ -499,96 +552,50 @@ class VectorFunctions:
         theta = np.linspace(0, 2*np.pi, 100)
         R = params[2]
         a = abs(1/(2*params[3]))
-        """if params[3] < 0:
+        if params[3] < 0:
             a = a
         else:
-            a = -a"""
+            a = -a
+
         max_index = self._max_index(params[1])
+
         if max_index == 0:  # x軸向き配置
-            if params[3] < 0:
-                y1 = R*np.cos(theta)
-                z1 = R*np.sin(theta)
-                Y1, Z1 = np.meshgrid(y1, z1)
-                X1 = a*Y1**2 + a*Z1**2
-                for i in range(100):
-                    for j in range(100):
-                        if (Y1[i][j])**2 + Z1[i][j]**2 > R**2:
-                            X1[i][j] = np.nan
-                        else:
-                            X1[i][j] = a*Y1[i][j]**2 + a*Z1[i][j]**2
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
-            elif params[3] > 0:
-                y1 = R*np.cos(theta)
-                z1 = R*np.sin(theta)
-                Y1, Z1 = np.meshgrid(y1, z1)
-                X1 = -(a*Y1**2 + a*Z1**2)
-                for i in range(100):
-                    for j in range(100):
-                        if (Y1[i][j])**2 + Z1[i][j]**2 > R**2:
-                            X1[i][j] = np.nan
-                        else:
-                            X1[i][j] = -(a*Y1[i][j]**2 + a*Z1[i][j]**2)
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
+            ax_opt_center = params[0][0]
+            ax_no_opt_1_center = params[0][1]
+            ax_no_opt_2_center = params[0][2]
         elif max_index == 1:  # y軸向き配置
-            if params[3] < 0:
-                a = a
-            else:
-                a = -a
-            if params[3] < 0:
-                x1 = R*np.cos(theta)
-                z1 = R*np.sin(theta)
-                X1, Z1 = np.meshgrid(x1, z1)
-                Y1 = a*X1**2 + a*Z1**2
-                for i in range(100):
-                    for j in range(100):
-                        if (X1[i][j])**2 + Z1[i][j]**2 > R**2:
-                            Y1[i][j] = np.nan
-                        else:
-                            Y1[i][j] = a*X1[i][j]**2 + a*Z1[i][j]**2
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
-            elif params[3] > 0:
-                x1 = R*np.cos(theta)
-                z1 = R*np.sin(theta)
-                X1, Z1 = np.meshgrid(x1, z1)
-                Y1 = -(a*X1**2 + a*Z1**2)
-                for i in range(100):
-                    for j in range(100):
-                        if (X1[i][j])**2 + Z1[i][j]**2 > R**2:
-                            Y1[i][j] = np.nan
-                        else:
-                            Y1[i][j] = -(a*X1[i][j]**2 + a*Z1[i][j]**2)
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
+            ax_opt_center = params[0][1]
+            ax_no_opt_1_center = params[0][2]
+            ax_no_opt_2_center = params[0][0]
         elif max_index == 2:  # z軸向き配置
-            if params[3] < 0:
-                x1 = R*np.cos(theta)
-                y1 = R*np.sin(theta)
-                X1, Y1 = np.meshgrid(x1, y1)
-                Z1 = a*X1**2 + a*Y1**2
-                for i in range(100):
-                    for j in range(100):
-                        if (X1[i][j])**2 + Y1[i][j]**2 > R**2:
-                            Z1[i][j] = np.nan
-                        else:
-                            Z1[i][j] = a*X1[i][j]**2 + a*Y1[i][j]**2
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
-            elif params[3] > 0:
-                x1 = R*np.cos(theta)
-                y1 = R*np.sin(theta)
-                X1, Y1 = np.meshgrid(x1, y1)
-                Z1 = -(a*X1**2 + a*Y1**2)
-                for i in range(100):
-                    for j in range(100):
-                        if (X1[i][j])**2 + Y1[i][j]**2 > R**2:
-                            Z1[i][j] = np.nan
-                        else:
-                            Z1[i][j] = -(a*X1[i][j]**2 + a*Y1[i][j]**2)
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
+            ax_opt_center = params[0][2]
+            ax_no_opt_1_center = params[0][0]
+            ax_no_opt_2_center = params[0][1]
+
+        ax_no_opt_1 = R*np.cos(theta)
+        ax_no_opt_2 = R*np.sin(theta)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if params[3] < 0:
+            ax_opt = a*ax_no_opt_1**2 + a*ax_no_opt_2**2
+        elif params[3] > 0:
+            ax_opt = -(a*ax_no_opt_1**2 + a*ax_no_opt_2**2)
+
+        for i in range(100):
+            for j in range(100):
+                if (ax_no_opt_1[i][j])**2 + ax_no_opt_2[i][j]**2 > R**2:
+                    ax_opt[i][j] = np.nan
+                else:
+                    if params[3] < 0:
+                        ax_opt[i][j] = a*ax_no_opt_1[i][j]**2 + a*ax_no_opt_2[i][j]**2
+                    elif params[3] > 0:
+                        ax_opt[i][j] = -(a*ax_no_opt_1[i][j]**2 + a*ax_no_opt_2[i][j]**2)
+
+        if max_index == 0:  # x軸向き配置
+            self._ax.plot_wireframe(ax_opt+ax_opt_center, ax_no_opt_1+ax_no_opt_1_center, ax_no_opt_2+ax_no_opt_2_center, color='b', linewidth=0.1)
+        elif max_index == 1:  # y軸向き配置
+            self._ax.plot_wireframe(ax_no_opt_2+ax_no_opt_2_center, ax_opt+ax_opt_center, ax_no_opt_1+ax_no_opt_1_center, color='b', linewidth=0.1)
+        elif max_index == 2:  # z軸向き配置
+            self._ax.plot_wireframe(ax_no_opt_1+ax_no_opt_1_center, ax_no_opt_2+ax_no_opt_2_center, ax_opt+ax_opt_center, color='b', linewidth=0.1)
 
     # コーニック面描画
     def plot_conic(self, params):
@@ -684,12 +691,6 @@ class VectorFunctions:
         result : ndarray
             (x,y,z)の組を格納したndarray。shapeは(shape0, shape1)。
         """
-        # result = [None]*(len(point0)+len(point1)+len(point2))
-        # result[::3] = point0
-        # result[1::3] = point1
-        # result[2::3] = point2
-        # result = np.array(result)
-        # result = result.reshape(shape0, shape1)
         result = np.column_stack((point0, point1, point2))
         return result
 
@@ -747,68 +748,24 @@ class VectorFunctions:
             光学素子の中心からaperture_Rの範囲内にあるかどうか。
             光線の数だけbool値を格納したリストを返す。
         """
-        # max_index = self._max_index(surface[1])
-        # length_ray_end_point = len(ray_end_point)
-        # aperture_R = surface[2]
-        # if length_ray_end_point == 3:  # 光線1本
-        #     if max_index == 0:  # x軸向き配置
-        #         if np.sqrt((ray_end_point[1]-surface[0][1])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
-        #             return True
-        #         else:
-        #             return False
-        #     if max_index == 1:  # y軸向き配置
-        #         if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[2]-surface[0][2])**2) <= aperture_R:
-        #             return True
-        #         else:
-        #             return False
-        #     if max_index == 2:  # z軸向き配置
-        #         if np.sqrt((ray_end_point[0]-surface[0][0])**2+(ray_end_point[1]-surface[0][1])**2) <= aperture_R:
-        #             return True
-        #         else:
-        #             return False
-        # else:
-        #     if max_index == 0:  # x軸向き配置
-        #         bool_list = []
-        #         for i in range(length_ray_end_point):
-        #             if np.sqrt((ray_end_point[i][1]-surface[0][1])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
-        #                 bool_list.append(True)
-        #             else:
-        #                 bool_list.append(False)
-        #         return bool_list
-        #     if max_index == 1:  # y軸向き配置
-        #         bool_list = []
-        #         for i in range(length_ray_end_point):
-        #             if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][2]-surface[0][2])**2) <= aperture_R:
-        #                 bool_list.append(True)
-        #             else:
-        #                 bool_list.append(False)
-        #         return bool_list
-        #     if max_index == 2:  # z軸向き配置
-        #         bool_list = []
-        #         for i in range(length_ray_end_point):
-        #             if np.sqrt((ray_end_point[i][0]-surface[0][0])**2+(ray_end_point[i][1]-surface[0][1])**2) <= aperture_R:
-        #                 bool_list.append(True)
-        #             else:
-        #                 bool_list.append(False)
-        #         return bool_list
         max_index = self._max_index(surface[1])
         aperture_R = surface[2]
 
         if max_index == 0:  # x軸向き配置
             # 光線の終点のy座標とz座標を一度に比較
-            diff = np.abs(ray_end_point[:, [1, 2]] - surface[0][[1, 2]])
+            diff = np.abs(ray_end_point[:, [1, 2]] - np.array(surface[0])[[1, 2]])
             in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
             return in_aperture
 
         if max_index == 1:  # y軸向き配置
             # 光線の終点のx座標とz座標を一度に比較
-            diff = np.abs(ray_end_point[:, [0, 2]] - surface[0][[0, 2]])
+            diff = np.abs(ray_end_point[:, [0, 2]] - np.array(surface[0])[[0, 2]])
             in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
             return in_aperture
 
         if max_index == 2:  # z軸向き配置
             # 光線の終点のx座標とy座標を一度に比較
-            diff = np.abs(ray_end_point[:, [0, 1]] - surface[0][[0, 1]])
+            diff = np.abs(ray_end_point[:, [0, 1]] - np.array(surface[0])[[0, 1]])
             in_aperture = np.sqrt(np.sum(diff**2, axis=1)) <= aperture_R
             return in_aperture
 
@@ -827,30 +784,22 @@ class VectorFunctions:
             光学素子の中心からaperture_Rの範囲内にあるかどうか。
             光線の数だけbool値を格納したリストを返す。
         """
-        # max_index = self._max_index(surface[1])
-        # length_ray_end_point = len(ray_end_point)
-        # aperture_R = surface[2]
-        # if length_ray_end_point == 3:
-        #     if max_index == 0:
-        #         if abs(ray_end_point[1]-surface[0][1]) <= aperture_R and abs(ray_end_point[2]-surface[0][2]) <= aperture_R:
-        #             return True
-        #         else:
-        #             return False
-        # else:
-        #     if max_index == 0:
-        #         bool_list = []
-        #         for i in range(length_ray_end_point):
-        #             if abs(ray_end_point[i][1]-surface[0][1]) <= aperture_R and abs(ray_end_point[i][2]-surface[0][2]) <= aperture_R:
-        #                 bool_list.append(True)
-        #             else:
-        #                 bool_list.append(False)
-        #         return bool_list
         max_index = self._max_index(surface[1])
         aperture_R = surface[2]
 
         if max_index == 0:
             # 光線の終点のy座標とz座標を一度に比較
             diff = np.abs(ray_end_point[:, [1, 2]] - surface[0][[1, 2]])
+            in_aperture = np.all(diff <= aperture_R, axis=1)
+            return in_aperture
+        elif max_index == 1:
+            # 光線の終点のx座標とz座標を一度に比較
+            diff = np.abs(ray_end_point[:, [0, 2]] - surface[0][[0, 2]])
+            in_aperture = np.all(diff <= aperture_R, axis=1)
+            return in_aperture
+        elif max_index == 2:
+            # 光線の終点のx座標とy座標を一度に比較
+            diff = np.abs(ray_end_point[:, [0, 1]] - surface[0][[0, 1]])
             in_aperture = np.all(diff <= aperture_R, axis=1)
             return in_aperture
 
@@ -925,11 +874,7 @@ class VectorFunctions:
         print(
             "[[pos_x, pos_y, pos_z], [normalV_x, normalV_y, normalV_z], _limit_R, _lens_R(中心曲率半径), _conic_K]")
         print(surface)
-        print("refraction_index :")
-        print("before_refractive_index (incident)")
-        print(self._refractive_index_before)
-        print("after_refractive_index")
-        print(self._refractive_index_after, "\n")
+        print("refraction_index (in, out):", self._refractive_index_before, ",", self._refractive_index_after, "\n")
         return surface, self._surface_name, self._refractive_index_before, self._refractive_index_after
 
     # 平板のレイトレーシング
@@ -969,39 +914,6 @@ class VectorFunctions:
             self.optical_path_length += T * self._refractive_index_calc_optical_path_length
             self._normalV_refract_or_reflect = np.tile(
                 nV, (length_ray_start_dir, 1))
-        # centerV = self._surface_pos
-        # normalV = self._normalV_optical_element
-        # length_ray_start_dir = len(self.ray_start_dir)
-        # #print("length_ray_start_dir", length_ray_start_dir)
-        # if length_ray_start_dir == 3:
-        #     nV = np.array(normalV)/np.linalg.norm(normalV)
-        #     T = (np.dot(centerV, nV)-np.dot(self.ray_start_pos, nV)) / \
-        #         (np.dot(self.ray_start_dir, nV))
-        #     self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
-        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!2", np.shape(self.ray_end_pos))
-        #     self.optical_path_length += T*self._refractive_index_calc_optical_path_length
-        #     self._normalV_refract_or_reflect = nV
-        # else:  # 光線群の場合
-        #     nV = np.array(normalV)/np.linalg.norm(normalV)
-        #     T = []
-        #     for i in range(length_ray_start_dir):
-        #         if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
-        #             T_tmp = 0
-        #             print("VF, raytrace_plane, T_tmp", T_tmp)
-        #             T.append(T_tmp)
-        #         else:
-        #             T_tmp = (np.dot(centerV, nV)-np.dot(np.array(self.ray_start_pos[i]), nV)) / (
-        #                 np.dot(np.array(self.ray_start_dir[i]), nV))
-        #             T.append(T_tmp)
-        #     T = np.array(T)
-        #     #T = [(np.dot(centerV, nV)-np.dot(self.ray_start_pos[i], nV)) / (np.dot(self.ray_start_dir[i], nV)) for i in range(length_ray_start_dir)]
-        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!1", np.shape(self.ray_end_pos), np.shape(T), np.shape(self.ray_end_dir))
-        #     self.ray_end_pos = self.ray_start_pos + \
-        #         np.array([V*T for V, T in zip(self.ray_start_dir, T)])
-        #     #print("VF:shape(ray_end_pos)!!!!!!!!!!!!!!!!!!!!!2", np.shape(self.ray_end_pos), np.shape(T), np.shape(self.ray_end_dir), np.shape([V*T for V, T in zip(self.ray_start_dir, T)]))
-        #     self.optical_path_length += np.array(T) * \
-        #         self._refractive_index_calc_optical_path_length
-        #     self._normalV_refract_or_reflect = [nV]*length_ray_start_dir
 
     # 球面のレイトレーシング
     def raytrace_sphere(self):
@@ -1017,87 +929,6 @@ class VectorFunctions:
         -------
         None
         """
-        # lens_pos = self._surface_pos
-        # lens_R = self._lens_or_parabola_R
-        # length_ray_start_dir = len(self.ray_start_pos)
-        # if length_ray_start_dir == 3:
-        #     tmp_V = np.zeros_like(self.ray_start_pos)
-        #     tmp_index = self._max_index(self.ray_start_dir)
-        #     tmp_V[tmp_index] = lens_R
-        #     test_dot = np.dot(tmp_V, self.ray_start_dir)
-        #     tmp_V = np.zeros_like(self.ray_start_pos)
-        #     tmp_index = self._max_index(self.ray_start_dir)
-        #     tmp_V[tmp_index] = lens_R
-        #     shiftV = lens_pos - tmp_V
-        #     #print("VFtest!!!!, shiftV =", shiftV)
-        #     if test_dot > 0:  # 凹レンズ
-        #         ray_pos = self.ray_start_pos - shiftV
-        #         A = np.dot(self.ray_start_dir, self.ray_start_dir)
-        #         B = np.dot(self.ray_start_dir, ray_pos)
-        #         C = np.dot(ray_pos, ray_pos) - abs(lens_R)**2
-        #         T = (-B + np.sqrt(B**2 - A*C)) / A
-        #     elif test_dot < 0:  # 凸レンズ
-        #         ray_pos = self.ray_start_pos - shiftV
-        #         A = np.dot(self.ray_start_dir, self.ray_start_dir)
-        #         B = np.dot(self.ray_start_dir, ray_pos)
-        #         C = np.dot(ray_pos, ray_pos) - abs(lens_R)**2
-        #         T = (-B - np.sqrt(B**2 - A*C)) / A
-        #     else:
-        #         T = np.nan
-        #     self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
-        #     self.optical_path_length += np.array(T) * \
-        #         self._refractive_index_calc_optical_path_length
-        #     self._normalV_refract_or_reflect = self._calc_normalV_sphere()
-        # else:  # 光線群の場合
-        #     tmp_V = np.zeros_like(self.ray_start_pos)
-        #     tmp_index = self._max_index(self._normalV_optical_element)
-        #     tmp_V[:, tmp_index] = lens_R
-        #     test_dot = np.dot(tmp_V[0], self.ray_start_dir[0])
-        #     tmp_V = np.zeros(3)
-        #     #tmp_index = self._max_index(self.ray_start_dir[0])
-        #     tmp_index = self._max_index(self._normalV_optical_element)
-        #     tmp_V[tmp_index] = lens_R
-        #     shiftV = lens_pos - tmp_V
-        #     #print("VFtest!!!!, shiftV =", shiftV)
-        #     if test_dot > 0:  # 凹レンズ
-        #         ray_pos = self.ray_start_pos - \
-        #             np.array([shiftV]*length_ray_start_dir)
-        #         A = np.diag(np.dot(self.ray_start_dir,
-        #                            np.array(self.ray_start_dir).T))
-        #         B = np.diag(np.dot(self.ray_start_dir, ray_pos.T))
-        #         C = np.diag(np.dot(ray_pos, ray_pos.T)) - abs(lens_R)**2
-        #         T = []
-        #         for i in range(length_ray_start_dir):
-        #             if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
-        #                 T_tmp = 0
-        #                 T.append(T_tmp)
-        #             else:
-        #                 T_tmp = (-B[i] + np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
-        #                 T.append(T_tmp)
-        #         T = np.array(T)
-        #     elif test_dot < 0:  # 凸レンズ
-        #         ray_pos = self.ray_start_pos - \
-        #             np.array([shiftV]*length_ray_start_dir)
-        #         A = np.diag(np.dot(self.ray_start_dir,
-        #                            np.array(self.ray_start_dir).T))
-        #         B = np.diag(np.dot(self.ray_start_dir, ray_pos.T))
-        #         C = np.diag(np.dot(ray_pos, ray_pos.T)) - abs(lens_R)**2
-        #         #T = (-B - np.sqrt(B**2 - A*C)) / A
-        #         T = []
-        #         for i in range(length_ray_start_dir):
-        #             if np.dot(self.ray_start_dir[i], np.array([1, 1, 1])) == 0:
-        #                 T_tmp = 0
-        #                 T.append(T_tmp)
-        #             else:
-        #                 T_tmp = (-B[i] - np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
-        #                 T.append(T_tmp)
-        #     else:
-        #         T = np.zeros(length_ray_start_dir)
-        #     self.ray_end_pos = self.ray_start_pos + \
-        #         [V*T for V, T in zip(self.ray_start_dir, T)]
-        #     self.optical_path_length += np.array(T) * \
-        #         self._refractive_index_calc_optical_path_length
-        #     self._normalV_refract_or_reflect = self._calc_normalV_sphere()
         lens_pos = self._surface_pos
         lens_R = self._lens_or_parabola_R
         length_ray_start_dir = len(self.ray_start_pos)
@@ -2204,10 +2035,10 @@ class VectorFunctions:
                 focal_length.append(tmp_V[argmax_index])
             # 並び替え
             focal_length.sort()
-            focal_length_mean = np.round(np.mean(focal_length), 5)
-            focal_length_std = np.round(np.std(focal_length), 5)
-            focal_length_max = np.round(np.max(focal_length), 5)
-            focal_length_min = np.round(np.min(focal_length), 5)
+            focal_length_mean = np.round(np.nanmean(focal_length), 5)
+            focal_length_std = np.round(np.nanstd(focal_length), 5)
+            focal_length_max = np.round(np.nanmax(focal_length), 5)
+            focal_length_min = np.round(np.nanmin(focal_length), 5)
             print("focal_length_mean: ", focal_length_mean,
                   "std: ", focal_length_std,
                   "max: ", focal_length_max, "min: ", focal_length_min)
@@ -2261,6 +2092,65 @@ class VectorFunctions:
             return focal_point
 
     # ２点の位置ベクトルから直線を引く関数
+    def plot_line_plotly(self, color='red', alpha=0.7, ms=1.0):
+        """
+        2点の位置ベクトルから直線を引く。
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        length_ray_start_dir = len(self.ray_start_pos)
+        if length_ray_start_dir == 3:
+            startPointV = self.ray_start_pos
+            endPointV = self.ray_end_pos
+            startX = startPointV[0]
+            startY = startPointV[1]
+            startZ = startPointV[2]
+            endX = endPointV[0]
+            endY = endPointV[1]
+            endZ = endPointV[2]
+            # self._ax.plot([startX, endX], [startY, endY], [startZ, endZ],
+            #               fmt, ms=ms, linewidth=0.5, color='r', alpha=alpha)
+            self._fig_plotly.add_trace(go.Scatter3d(
+                x=[startX, endX],
+                y=[startY, endY],
+                z=[startZ, endZ],
+                mode='lines+markers',
+                opacity=alpha,
+                line=dict(color=color, width=1),
+                marker=dict(size=ms, color=color),
+                showlegend=False,
+                hoverinfo='none',
+                ))
+        else:
+            startPointV = self.ray_start_pos
+            endPointV = self.ray_end_pos
+            startX = startPointV[:, 0]
+            startY = startPointV[:, 1]
+            startZ = startPointV[:, 2]
+            endX = endPointV[:, 0]
+            endY = endPointV[:, 1]
+            endZ = endPointV[:, 2]
+            for i in range(length_ray_start_dir):
+                # self._ax.plot([startX[i], endX[i]], [startY[i], endY[i],], [startZ[i], endZ[i]],
+                #               fmt, ms=ms, linewidth=0.5, color='r', alpha=alpha)
+                self._fig_plotly.add_trace(go.Scatter3d(
+                    x=[startX[i], endX[i]],
+                    y=[startY[i], endY[i]],
+                    z=[startZ[i], endZ[i]],
+                    mode='lines+markers',
+                    opacity=alpha,
+                    line=dict(color=color, width=1),
+                    marker=dict(size=ms, color=color),
+                    showlegend=False,
+                    hoverinfo='none',
+                    ))
+
     def plot_line_blue(self, alpha=1.0, fmt='o-', ms=2):
         """
         2点の位置ベクトルから直線を引く。
