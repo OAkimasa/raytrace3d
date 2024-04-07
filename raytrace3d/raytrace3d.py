@@ -166,60 +166,50 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
+        # 円盤生成
+        geneNum = 200
+        if argmax_index == 0:  # 光軸:x軸
+            ax_opt_center = X_center
+            ax_no_opt_1_center = Y_center
+            ax_no_opt_2_center = Z_center
+            nV_arg_opt = normalV[0]
+            nV_arg_no_opt_1 = normalV[1]
+            nV_arg_no_opt_2 = normalV[2]
+        elif argmax_index == 1:  # 光軸:y軸
+            ax_opt_center = Y_center
+            ax_no_opt_1_center = Z_center
+            ax_no_opt_2_center = X_center
+            nV_arg_opt = normalV[1]
+            nV_arg_no_opt_1 = normalV[2]
+            nV_arg_no_opt_2 = normalV[0]
+        elif argmax_index == 2:  # 光軸:z軸
+            ax_opt_center = Z_center
+            ax_no_opt_1_center = X_center
+            ax_no_opt_2_center = Y_center
+            nV_arg_opt = normalV[2]
+            nV_arg_no_opt_1 = normalV[0]
+            nV_arg_no_opt_2 = normalV[1]
+        ax_no_opt_1 = np.linspace(ax_no_opt_1_center-R, ax_no_opt_1_center+R, geneNum)
+        ax_no_opt_2 = np.linspace(ax_no_opt_2_center-R, ax_no_opt_2_center+R, geneNum)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if nV_arg_opt == 0:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / 0.01
+        else:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / nV_arg_opt
+
+        for i in range(geneNum):
+            for j in range(geneNum):
+                if (ax_opt[i][j]-ax_opt_center)**2 + (ax_no_opt_1[i][j]-ax_no_opt_1_center)**2 + (ax_no_opt_2[i][j]-ax_no_opt_2_center)**2 > R**2:
+                    ax_no_opt_2[i][j] = np.nan
+
         if argmax_index == 0:
-            # 円盤生成
-            geneNum = 200
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            Y, Z = np.meshgrid(y, z)
-            if normalV[0] == 0:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[0]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color=color, linewidth=0.3)
         elif argmax_index == 1:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            X, Z = np.meshgrid(x, z)
-            if normalV[1] == 0:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[1]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color=color, linewidth=0.3)
         elif argmax_index == 2:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            X, Y = np.meshgrid(x, y)
-            if normalV[2] == 0:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / 0.01
-            else:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / normalV[2]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color=color, linewidth=0.3)
 
     def plot_window(self, params):
         """
@@ -243,128 +233,61 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
+        # 円盤生成
+        geneNum = 200
+        if argmax_index == 0:  # 光軸:x軸
+            ax_opt_center = X_center
+            ax_no_opt_1_center = Y_center
+            ax_no_opt_2_center = Z_center
+            nV_arg_opt = normalV[0]
+            nV_arg_no_opt_1 = normalV[1]
+            nV_arg_no_opt_2 = normalV[2]
+        elif argmax_index == 1:  # 光軸:y軸
+            ax_opt_center = Y_center
+            ax_no_opt_1_center = Z_center
+            ax_no_opt_2_center = X_center
+            nV_arg_opt = normalV[1]
+            nV_arg_no_opt_1 = normalV[2]
+            nV_arg_no_opt_2 = normalV[0]
+        elif argmax_index == 2:  # 光軸:z軸
+            ax_opt_center = Z_center
+            ax_no_opt_1_center = X_center
+            ax_no_opt_2_center = Y_center
+            nV_arg_opt = normalV[2]
+            nV_arg_no_opt_1 = normalV[0]
+            nV_arg_no_opt_2 = normalV[1]
+        ax_no_opt_1 = np.linspace(ax_no_opt_1_center-R, ax_no_opt_1_center+R, geneNum)
+        ax_no_opt_2 = np.linspace(ax_no_opt_2_center-R, ax_no_opt_2_center+R, geneNum)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if nV_arg_opt == 0:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / 0.01
+        else:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / nV_arg_opt
+
+        for i in range(geneNum):
+            for j in range(geneNum):
+                if (ax_opt[i][j]-ax_opt_center)**2 + (ax_no_opt_1[i][j]-ax_no_opt_1_center)**2 + (ax_no_opt_2[i][j]-ax_no_opt_2_center)**2 > R**2:
+                    ax_no_opt_2[i][j] = np.nan
+
         if argmax_index == 0:
-            # 円盤生成
-            geneNum = 200
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            Y, Z = np.meshgrid(y, z)
-            if normalV[0] == 0:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[0]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color='lightcyan', linewidth=0.3)
-            theta = np.linspace(0, 2*np.pi, 100)
-            x = np.zeros_like(theta) + X_center
-            y = np.cos(theta)*R + Y_center
-            z = np.sin(theta)*R + Z_center
-            self._ax.plot(x, y, z, color='black', linewidth=0.3)
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color='lightcyan', linewidth=0.3)
         elif argmax_index == 1:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            X, Z = np.meshgrid(x, z)
-            if normalV[1] == 0:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[1]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Y[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color='lightcyan', linewidth=0.3)
-            theta = np.linspace(0, 2*np.pi, 100)
-            x = R*np.cos(theta) + X_center
-            y = np.zeros_like(theta) + Y_center
-            z = R*np.sin(theta) + Z_center
-            self._ax.plot(x, y, z, color='k', linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color='lightcyan', linewidth=0.3)
         elif argmax_index == 2:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            X, Y = np.meshgrid(x, y)
-            if normalV[2] == 0:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / 0.01
-            else:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / normalV[2]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color='lightcyan', linewidth=0.3)
-            theta = np.linspace(0, 2*np.pi, 100)
-            x = R*np.cos(theta) + X_center
-            y = R*np.sin(theta) + Y_center
-            z = np.zeros_like(theta) + Z_center
-            self._ax.plot(x, y, z, color='k', linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color='lightcyan', linewidth=0.3)
 
-        # # argmax_index==0->x軸向き配置
-        # # argmax_index==1->y軸向き配置
-        # # argmax_index==2->z軸向き配置
-        # axes_mapping = {
-        #     0: {"opt_center": X_center, "no_opt_centers": [Y_center, Z_center], "sub_indexes": [1, 2]},
-        #     1: {"opt_center": Y_center, "no_opt_centers": [Z_center, X_center], "sub_indexes": [2, 0]},
-        #     2: {"opt_center": Z_center, "no_opt_centers": [X_center, Y_center], "sub_indexes": [0, 1]},
-        # }
-        # axis_info = axes_mapping[argmax_index]
-        # opt_center = axis_info["opt_center"]
-        # no_opt_centers = axis_info["no_opt_centers"]
-        # sub_indexes = axis_info["sub_indexes"]
-        # no_opt_center_1, no_opt_center_2 = no_opt_centers
-        # sub_index_1, sub_index_2 = sub_indexes
-
-        # # 円盤生成
-        # geneNum = 200
-        # ax_no_opt_1 = np.linspace(no_opt_center_1-R, no_opt_center_1+R, geneNum)
-        # ax_no_opt_2 = np.linspace(no_opt_center_2-R, no_opt_center_2+R, geneNum)
-        # ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
-        # if normalV[argmax_index] == 0:
-        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
-        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / 0.01
-        # else:
-        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
-        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / normalV[argmax_index]
-        # for i in range(geneNum):
-        #     for j in range(geneNum):
-        #         if (ax_opt[i][j]-opt_center)**2 + (ax_no_opt_1[i][j]-no_opt_center_1)**2 + (ax_no_opt_2[i][j]-no_opt_center_2)**2 > R**2:
-        #             ax_no_opt_2[i][j] = np.nan
-
-        # # 円盤描画
-        # axes_mapping = {
-        #     0: {"X": ax_opt, "Y": ax_no_opt_1, "Z": ax_no_opt_2},
-        #     1: {"X": ax_no_opt_1, "Y": ax_opt, "Z": ax_no_opt_2},
-        #     2: {"X": ax_no_opt_1, "Y": ax_no_opt_2, "Z": ax_opt},
-        # }
-        # axis_info = axes_mapping[argmax_index]
-        # X, Y, Z = axis_info["X"], axis_info["Y"], axis_info["Z"]
-        # self._ax.plot_wireframe(X, Y, Z, color='lightcyan', linewidth=0.3)
-        # theta = np.linspace(0, 2*np.pi, 100)
-        # opt = np.zeros_like(theta) + opt_center
-        # no_opt_1 = R*np.cos(theta) + no_opt_center_1
-        # no_opt_2 = R*np.sin(theta) + no_opt_center_2
-        # axes_mapping = {
-        #     0: {"X": opt, "Y": no_opt_1, "Z": no_opt_2},
-        #     1: {"X": no_opt_1, "Y": opt, "Z": no_opt_2},
-        #     2: {"X": no_opt_1, "Y": no_opt_2, "Z": opt},
-        # }
-        # axis_info = axes_mapping[argmax_index]
-        # x, y, z = axis_info["X"], axis_info["Y"], axis_info["Z"]
-        # self._ax.plot(x, y, z, color='black', linewidth=0.3)
+        theta = np.linspace(0, 2*np.pi, 100)
+        ax_opt = np.zeros_like(theta) + ax_opt_center
+        ax_no_opt_1 = R*np.cos(theta) + ax_no_opt_1_center
+        ax_no_opt_2 = R*np.sin(theta) + ax_no_opt_2_center
+        if argmax_index == 0:
+            self._ax.plot(ax_opt, ax_no_opt_1, ax_no_opt_2, color='black', linewidth=0.3)
+        elif argmax_index == 1:
+            self._ax.plot(ax_no_opt_2, ax_opt, ax_no_opt_1, color='black', linewidth=0.3)
+        elif argmax_index == 2:
+            self._ax.plot(ax_no_opt_1, ax_no_opt_2, ax_opt, color='black', linewidth=0.3)
 
     def plot_plane(self, params, color="gray"):
         """
@@ -388,101 +311,50 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
+        # 円盤生成
+        geneNum = 200
+        if argmax_index == 0:  # 光軸:x軸
+            ax_opt_center = X_center
+            ax_no_opt_1_center = Y_center
+            ax_no_opt_2_center = Z_center
+            nV_arg_opt = normalV[0]
+            nV_arg_no_opt_1 = normalV[1]
+            nV_arg_no_opt_2 = normalV[2]
+        elif argmax_index == 1:  # 光軸:y軸
+            ax_opt_center = Y_center
+            ax_no_opt_1_center = Z_center
+            ax_no_opt_2_center = X_center
+            nV_arg_opt = normalV[1]
+            nV_arg_no_opt_1 = normalV[2]
+            nV_arg_no_opt_2 = normalV[0]
+        elif argmax_index == 2:  # 光軸:z軸
+            ax_opt_center = Z_center
+            ax_no_opt_1_center = X_center
+            ax_no_opt_2_center = Y_center
+            nV_arg_opt = normalV[2]
+            nV_arg_no_opt_1 = normalV[0]
+            nV_arg_no_opt_2 = normalV[1]
+        ax_no_opt_1 = np.linspace(ax_no_opt_1_center-R, ax_no_opt_1_center+R, geneNum)
+        ax_no_opt_2 = np.linspace(ax_no_opt_2_center-R, ax_no_opt_2_center+R, geneNum)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if nV_arg_opt == 0:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / 0.01
+        else:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / nV_arg_opt
+
+        for i in range(geneNum):
+            for j in range(geneNum):
+                if (ax_opt[i][j]-ax_opt_center)**2 + (ax_no_opt_1[i][j]-ax_no_opt_1_center)**2 + (ax_no_opt_2[i][j]-ax_no_opt_2_center)**2 > R**2:
+                    ax_no_opt_2[i][j] = np.nan
+
         if argmax_index == 0:
-            # 円盤生成
-            geneNum = 200
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            Y, Z = np.meshgrid(y, z)
-            if normalV[0] == 0:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[0]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color=color, linewidth=0.3)
         elif argmax_index == 1:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            z = np.linspace(Z_center-R, Z_center+R, geneNum)
-            X, Z = np.meshgrid(x, z)
-            if normalV[1] == 0:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[1]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color=color, linewidth=0.3)
         elif argmax_index == 2:
-            # 円盤生成
-            geneNum = 200
-            x = np.linspace(X_center-R, X_center+R, geneNum)
-            y = np.linspace(Y_center-R, Y_center+R, geneNum)
-            X, Y = np.meshgrid(x, y)
-            if normalV[2] == 0:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / 0.01
-            else:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / normalV[2]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if (X[i][j]-X_center)**2 + (Y[i][j]-Y_center)**2 + (Z[i][j]-Z_center)**2 > R**2:
-                        Z[i][j] = np.nan
-            #self._ax.quiver(X_center, Y_center, Z_center, normalV[0], normalV[1], normalV[2], color='black', length=50)
-            self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
-
-        # # argmax_index==0->x軸向き配置
-        # # argmax_index==1->y軸向き配置
-        # # argmax_index==2->z軸向き配置
-        # axes_mapping = {
-        #     0: {"opt_center": X_center, "no_opt_centers": [Y_center, Z_center], "sub_indexes": [1, 2]},
-        #     1: {"opt_center": Y_center, "no_opt_centers": [Z_center, X_center], "sub_indexes": [2, 0]},
-        #     2: {"opt_center": Z_center, "no_opt_centers": [X_center, Y_center], "sub_indexes": [0, 1]},
-        # }
-        # axis_info = axes_mapping[argmax_index]
-        # opt_center = axis_info["opt_center"]
-        # no_opt_centers = axis_info["no_opt_centers"]
-        # sub_indexes = axis_info["sub_indexes"]
-        # no_opt_center_1, no_opt_center_2 = no_opt_centers
-        # sub_index_1, sub_index_2 = sub_indexes
-
-        # # 円盤生成
-        # geneNum = 200
-        # ax_no_opt_1 = np.linspace(no_opt_center_1-R, no_opt_center_1+R, geneNum)
-        # ax_no_opt_2 = np.linspace(no_opt_center_2-R, no_opt_center_2+R, geneNum)
-        # ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
-        # if normalV[argmax_index] == 0:
-        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
-        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / 0.01
-        # else:
-        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
-        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / normalV[argmax_index]
-        # for i in range(geneNum):
-        #     for j in range(geneNum):
-        #         if (ax_opt[i][j]-opt_center)**2 + (ax_no_opt_1[i][j]-no_opt_center_1)**2 + (ax_no_opt_2[i][j]-no_opt_center_2)**2 > R**2:
-        #             ax_no_opt_2[i][j] = np.nan
-
-        # # 円盤描画
-        # axes_mapping = {
-        #     0: {"X": ax_opt, "Y": ax_no_opt_1, "Z": ax_no_opt_2},
-        #     1: {"X": ax_no_opt_1, "Y": ax_opt, "Z": ax_no_opt_2},
-        #     2: {"X": ax_no_opt_1, "Y": ax_no_opt_2, "Z": ax_opt},
-        # }
-        # axis_info = axes_mapping[argmax_index]
-        # X, Y, Z = axis_info["X"], axis_info["Y"], axis_info["Z"]
-        # self._ax.plot_wireframe(X, Y, Z, color=color, linewidth=0.3)
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color=color, linewidth=0.3)
 
     def plot_square(self, params, color='gray'):
         """
@@ -506,97 +378,52 @@ class VectorFunctions:
 
         argmax_index = np.argmax(np.abs(params[1]))
 
+        # 正方形生成
+        geneNum = 10
+
         if argmax_index == 0:
-            # 正方形生成
-            geneNum = 10
-            y = np.linspace(Y_center-a, Y_center+a, geneNum)
-            z = np.linspace(Z_center-a, Z_center+a, geneNum)
-            Y, Z = np.meshgrid(y, z)
-            if normalV[0] == 0:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                X = X_center - (normalV[1]*(Y-Y_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[0]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
-                        Z[i][j] = np.nan
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+            ax_opt_center = X_center
+            ax_no_opt_1_center = Y_center
+            ax_no_opt_2_center = Z_center
+            nV_arg_opt = normalV[0]
+            nV_arg_no_opt_1 = normalV[1]
+            nV_arg_no_opt_2 = normalV[2]
         elif argmax_index == 1:
-            # 正方形生成
-            geneNum = 10
-            x = np.linspace(X_center-a, X_center+a, geneNum)
-            z = np.linspace(Z_center-a, Z_center+a, geneNum)
-            X, Z = np.meshgrid(x, z)
-            if normalV[1] == 0:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / 0.01
-            else:
-                Y = Y_center - (normalV[0]*(X-X_center) +
-                                normalV[2]*(Z-Z_center)) / normalV[1]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
-                        Z[i][j] = np.nan
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+            ax_opt_center = Y_center
+            ax_no_opt_1_center = Z_center
+            ax_no_opt_2_center = X_center
+            nV_arg_opt = normalV[1]
+            nV_arg_no_opt_1 = normalV[2]
+            nV_arg_no_opt_2 = normalV[0]
         elif argmax_index == 2:
-            # 正方形生成
-            geneNum = 10
-            x = np.linspace(X_center-a, X_center+a, geneNum)
-            y = np.linspace(Y_center-a, Y_center+a, geneNum)
-            X, Y = np.meshgrid(x, y)
-            if normalV[2] == 0:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / 0.01
-            else:
-                Z = Z_center - (normalV[0]*(X-X_center) +
-                                normalV[1]*(Y-Y_center)) / normalV[2]
-            for i in range(geneNum):
-                for j in range(geneNum):
-                    if abs(X[i][j]-X_center) > a or abs(Y[i][j]-Y_center) > a or abs(Z[i][j]-Z_center) > a:
-                        Z[i][j] = np.nan
-            self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+            ax_opt_center = Z_center
+            ax_no_opt_1_center = X_center
+            ax_no_opt_2_center = Y_center
+            nV_arg_opt = normalV[2]
+            nV_arg_no_opt_1 = normalV[0]
+            nV_arg_no_opt_2 = normalV[1]
 
-        # # argmax_index==0->x軸向き配置
-        # # argmax_index==1->y軸向き配置
-        # # argmax_index==2->z軸向き配置
-        # axes_mapping = {
-        #     0: {"opt_center": X_center, "no_opt_centers": [Y_center, Z_center], "sub_indexes": [1, 2]},
-        #     1: {"opt_center": Y_center, "no_opt_centers": [Z_center, X_center], "sub_indexes": [2, 0]},
-        #     2: {"opt_center": Z_center, "no_opt_centers": [X_center, Y_center], "sub_indexes": [0, 1]},
-        # }
-        # axis_info = axes_mapping[argmax_index]
-        # opt_center = axis_info["opt_center"]
-        # no_opt_centers = axis_info["no_opt_centers"]
-        # sub_indexes = axis_info["sub_indexes"]
-        # no_opt_center_1, no_opt_center_2 = no_opt_centers
-        # sub_index_1, sub_index_2 = sub_indexes
+        ax_no_opt_1 = np.linspace(ax_no_opt_1_center-a, ax_no_opt_1_center+a, geneNum)
+        ax_no_opt_2 = np.linspace(ax_no_opt_2_center-a, ax_no_opt_2_center+a, geneNum)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if nV_arg_opt == 0:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / 0.01
+        else:
+            ax_opt = ax_opt_center - (nV_arg_no_opt_1*(ax_no_opt_1-ax_no_opt_1_center) +
+                                    nV_arg_no_opt_2*(ax_no_opt_2-ax_no_opt_2_center)) / nV_arg_opt
 
-        # # 正方形生成
-        # geneNum = 10
-        # ax_no_opt_1 = np.linspace(no_opt_center_1-a, no_opt_center_1+a, geneNum)
-        # ax_no_opt_2 = np.linspace(no_opt_center_2-a, no_opt_center_2+a, geneNum)
-        # ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
-        # if normalV[argmax_index] == 0:
-        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
-        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / 0.01
-        # else:
-        #     ax_opt = opt_center - (normalV[sub_index_1]*(ax_no_opt_1-no_opt_center_1) +
-        #                            normalV[sub_index_2]*(ax_no_opt_2-no_opt_center_2)) / normalV[argmax_index]
-        # for i in range(geneNum):
-        #     for j in range(geneNum):
-        #         if (ax_opt[i][j]-opt_center)**2 + (ax_no_opt_1[i][j]-no_opt_center_1)**2 + (ax_no_opt_2[i][j]-no_opt_center_2)**2 > a**2:
-        #             ax_no_opt_2[i][j] = np.nan
-        # # 描画
-        # axes_mapping = {
-        #     0: {"X": ax_opt, "Y": ax_no_opt_1, "Z": ax_no_opt_2},
-        #     1: {"X": ax_no_opt_2, "Y": ax_opt, "Z": ax_no_opt_1},
-        #     2: {"X": ax_no_opt_1, "Y": ax_no_opt_2, "Z": ax_opt},
-        # }
-        # axis_info = axes_mapping[argmax_index]
-        # X, Y, Z = axis_info["X"], axis_info["Y"], axis_info["Z"]
-        # self._ax.plot_wireframe(X, Y, Z, linewidth=0.3, color=color)
+        for i in range(geneNum):
+            for j in range(geneNum):
+                if (ax_opt[i][j]-ax_opt_center) > a or (ax_no_opt_1[i][j]-ax_no_opt_1_center) > a or (ax_no_opt_2[i][j]-ax_no_opt_2_center) > a:
+                    ax_no_opt_2[i][j] = np.nan
+
+        if argmax_index == 0:
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color=color, linewidth=0.3)
+        elif argmax_index == 1:
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color=color, linewidth=0.3)
+        elif argmax_index == 2:
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color=color, linewidth=0.3)
 
     # レンズ描画
     def plot_lens(self, params):
@@ -725,96 +552,50 @@ class VectorFunctions:
         theta = np.linspace(0, 2*np.pi, 100)
         R = params[2]
         a = abs(1/(2*params[3]))
-        """if params[3] < 0:
+        if params[3] < 0:
             a = a
         else:
-            a = -a"""
+            a = -a
+
         max_index = self._max_index(params[1])
+
         if max_index == 0:  # x軸向き配置
-            if params[3] < 0:
-                y1 = R*np.cos(theta)
-                z1 = R*np.sin(theta)
-                Y1, Z1 = np.meshgrid(y1, z1)
-                X1 = a*Y1**2 + a*Z1**2
-                for i in range(100):
-                    for j in range(100):
-                        if (Y1[i][j])**2 + Z1[i][j]**2 > R**2:
-                            X1[i][j] = np.nan
-                        else:
-                            X1[i][j] = a*Y1[i][j]**2 + a*Z1[i][j]**2
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
-            elif params[3] > 0:
-                y1 = R*np.cos(theta)
-                z1 = R*np.sin(theta)
-                Y1, Z1 = np.meshgrid(y1, z1)
-                X1 = -(a*Y1**2 + a*Z1**2)
-                for i in range(100):
-                    for j in range(100):
-                        if (Y1[i][j])**2 + Z1[i][j]**2 > R**2:
-                            X1[i][j] = np.nan
-                        else:
-                            X1[i][j] = -(a*Y1[i][j]**2 + a*Z1[i][j]**2)
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
+            ax_opt_center = params[0][0]
+            ax_no_opt_1_center = params[0][1]
+            ax_no_opt_2_center = params[0][2]
         elif max_index == 1:  # y軸向き配置
-            if params[3] < 0:
-                a = a
-            else:
-                a = -a
-            if params[3] < 0:
-                x1 = R*np.cos(theta)
-                z1 = R*np.sin(theta)
-                X1, Z1 = np.meshgrid(x1, z1)
-                Y1 = a*X1**2 + a*Z1**2
-                for i in range(100):
-                    for j in range(100):
-                        if (X1[i][j])**2 + Z1[i][j]**2 > R**2:
-                            Y1[i][j] = np.nan
-                        else:
-                            Y1[i][j] = a*X1[i][j]**2 + a*Z1[i][j]**2
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
-            elif params[3] > 0:
-                x1 = R*np.cos(theta)
-                z1 = R*np.sin(theta)
-                X1, Z1 = np.meshgrid(x1, z1)
-                Y1 = -(a*X1**2 + a*Z1**2)
-                for i in range(100):
-                    for j in range(100):
-                        if (X1[i][j])**2 + Z1[i][j]**2 > R**2:
-                            Y1[i][j] = np.nan
-                        else:
-                            Y1[i][j] = -(a*X1[i][j]**2 + a*Z1[i][j]**2)
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
+            ax_opt_center = params[0][1]
+            ax_no_opt_1_center = params[0][2]
+            ax_no_opt_2_center = params[0][0]
         elif max_index == 2:  # z軸向き配置
-            if params[3] < 0:
-                x1 = R*np.cos(theta)
-                y1 = R*np.sin(theta)
-                X1, Y1 = np.meshgrid(x1, y1)
-                Z1 = a*X1**2 + a*Y1**2
-                for i in range(100):
-                    for j in range(100):
-                        if (X1[i][j])**2 + Y1[i][j]**2 > R**2:
-                            Z1[i][j] = np.nan
-                        else:
-                            Z1[i][j] = a*X1[i][j]**2 + a*Y1[i][j]**2
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
-            elif params[3] > 0:
-                x1 = R*np.cos(theta)
-                y1 = R*np.sin(theta)
-                X1, Y1 = np.meshgrid(x1, y1)
-                Z1 = -(a*X1**2 + a*Y1**2)
-                for i in range(100):
-                    for j in range(100):
-                        if (X1[i][j])**2 + Y1[i][j]**2 > R**2:
-                            Z1[i][j] = np.nan
-                        else:
-                            Z1[i][j] = -(a*X1[i][j]**2 + a*Y1[i][j]**2)
-                self._ax.plot_wireframe(X1+params[0][0], Y1+params[0]
-                                        [1], Z1+params[0][2], color='b', linewidth=0.1)
+            ax_opt_center = params[0][2]
+            ax_no_opt_1_center = params[0][0]
+            ax_no_opt_2_center = params[0][1]
+
+        ax_no_opt_1 = R*np.cos(theta)
+        ax_no_opt_2 = R*np.sin(theta)
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        if params[3] < 0:
+            ax_opt = a*ax_no_opt_1**2 + a*ax_no_opt_2**2
+        elif params[3] > 0:
+            ax_opt = -(a*ax_no_opt_1**2 + a*ax_no_opt_2**2)
+
+        for i in range(100):
+            for j in range(100):
+                if (ax_no_opt_1[i][j])**2 + ax_no_opt_2[i][j]**2 > R**2:
+                    ax_opt[i][j] = np.nan
+                else:
+                    if params[3] < 0:
+                        ax_opt[i][j] = a*ax_no_opt_1[i][j]**2 + a*ax_no_opt_2[i][j]**2
+                    elif params[3] > 0:
+                        ax_opt[i][j] = -(a*ax_no_opt_1[i][j]**2 + a*ax_no_opt_2[i][j]**2)
+
+        if max_index == 0:  # x軸向き配置
+            self._ax.plot_wireframe(ax_opt+ax_opt_center, ax_no_opt_1+ax_no_opt_1_center, ax_no_opt_2+ax_no_opt_2_center, color='b', linewidth=0.1)
+        elif max_index == 1:  # y軸向き配置
+            self._ax.plot_wireframe(ax_no_opt_2+ax_no_opt_2_center, ax_opt+ax_opt_center, ax_no_opt_1+ax_no_opt_1_center, color='b', linewidth=0.1)
+        elif max_index == 2:  # z軸向き配置
+            self._ax.plot_wireframe(ax_no_opt_1+ax_no_opt_1_center, ax_no_opt_2+ax_no_opt_2_center, ax_opt+ax_opt_center, color='b', linewidth=0.1)
 
     # コーニック面描画
     def plot_conic(self, params):
@@ -1011,6 +792,16 @@ class VectorFunctions:
             diff = np.abs(ray_end_point[:, [1, 2]] - surface[0][[1, 2]])
             in_aperture = np.all(diff <= aperture_R, axis=1)
             return in_aperture
+        elif max_index == 1:
+            # 光線の終点のx座標とz座標を一度に比較
+            diff = np.abs(ray_end_point[:, [0, 2]] - surface[0][[0, 2]])
+            in_aperture = np.all(diff <= aperture_R, axis=1)
+            return in_aperture
+        elif max_index == 2:
+            # 光線の終点のx座標とy座標を一度に比較
+            diff = np.abs(ray_end_point[:, [0, 1]] - surface[0][[0, 1]])
+            in_aperture = np.all(diff <= aperture_R, axis=1)
+            return in_aperture
 
         # max_index != 0 の場合、すべての光線は中心のy座標とz座標内にあります
         return np.ones(len(ray_end_point), dtype=bool)
@@ -1083,11 +874,7 @@ class VectorFunctions:
         print(
             "[[pos_x, pos_y, pos_z], [normalV_x, normalV_y, normalV_z], _limit_R, _lens_R(中心曲率半径), _conic_K]")
         print(surface)
-        print("refraction_index :")
-        print("before_refractive_index (incident)")
-        print(self._refractive_index_before)
-        print("after_refractive_index")
-        print(self._refractive_index_after, "\n")
+        print("refraction_index (in, out):", self._refractive_index_before, ",", self._refractive_index_after, "\n")
         return surface, self._surface_name, self._refractive_index_before, self._refractive_index_after
 
     # 平板のレイトレーシング
@@ -2248,10 +2035,10 @@ class VectorFunctions:
                 focal_length.append(tmp_V[argmax_index])
             # 並び替え
             focal_length.sort()
-            focal_length_mean = np.round(np.mean(focal_length), 5)
-            focal_length_std = np.round(np.std(focal_length), 5)
-            focal_length_max = np.round(np.max(focal_length), 5)
-            focal_length_min = np.round(np.min(focal_length), 5)
+            focal_length_mean = np.round(np.nanmean(focal_length), 5)
+            focal_length_std = np.round(np.nanstd(focal_length), 5)
+            focal_length_max = np.round(np.nanmax(focal_length), 5)
+            focal_length_min = np.round(np.nanmin(focal_length), 5)
             print("focal_length_mean: ", focal_length_mean,
                   "std: ", focal_length_std,
                   "max: ", focal_length_max, "min: ", focal_length_min)
