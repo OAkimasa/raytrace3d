@@ -59,7 +59,7 @@ secondary_mirror = [[0.+shift_pos_secondary_mirror[0], 0.+shift_pos_secondary_mi
 # AC508_080_AB_ML: f=80mm, d=50.8mm(2inch)
 N_AC508_080_AB_ML_G1_550nm = 1.65361794505  # N-LAK22
 N_AC508_080_AB_ML_G2_550nm = 1.81186626679  # N-SF6
-field_lens_pos = np.array([1491.75-72.73*1, 0., 0.])
+field_lens_pos = np.array([1491.75-72.73*1.5, 0., 0.])
 field_lens_1 = [field_lens_pos+np.array([72.73*1, 0., 0.]), [1., 0., 0.], 25.4, -181.7]
 field_lens_2 = [field_lens_pos+np.array([72.73*1+3, 0., 0.]), [1., 0., 0.], 25.4, -80.6]
 field_lens_3 = [field_lens_pos+np.array([72.73*1+3+12, 0., 0.]), [1., 0., 0.], 25.4, 63.6]
@@ -264,7 +264,7 @@ KGT40_mirror()  # 副鏡までの光線追跡
 KGT40_last_ray_pos = VF_1.ray_end_pos  # secondary_mirrorの終点を保存
 KGT40_last_ray_dir = VF_1.ray_end_dir  # secondary_mirrorの終点を保存
 # 主焦点を計算
-evaluate_plane = [[1515.35-16.6*1, 0., 0.], [1., 0., 0.], 100, np.inf]
+evaluate_plane = [[1498.75-200, 0., 0.], [1., 0., 0.], 100, np.inf]
 VF_1.plot_plane(evaluate_plane)  # surface描画
 # secondary_mirrorの終点をevaluate_planeの始点に
 VF_1.ray_start_pos = KGT40_last_ray_pos
@@ -297,47 +297,47 @@ pupil_coord_2 = ray_start_pos_init[:, 2]/203
 # ax.set_title("OPD")
 # ax.scatter(pupil_coord_1, pupil_coord_2, OPD)
 
-# PSFの計算
-psf_nres = 100
-base_grid = np.ones((psf_nres, psf_nres))
-# 単位円の外は0にする
-base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
-                  (np.arange(psf_nres)[:, np.newaxis]-50)**2) > 50] = 0
-# 副鏡遮蔽
-base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
-                  (np.arange(psf_nres)[:, np.newaxis]-50)**2) < 50*(95/203)] = 0
-flux_map = base_grid.copy()
+# # PSFの計算
+# psf_nres = 100
+# base_grid = np.ones((psf_nres, psf_nres))
+# # 単位円の外は0にする
+# base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
+#                   (np.arange(psf_nres)[:, np.newaxis]-50)**2) > 50] = 0
+# # 副鏡遮蔽
+# base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
+#                   (np.arange(psf_nres)[:, np.newaxis]-50)**2) < 50*(95/203)] = 0
+# flux_map = base_grid.copy()
 
-pupil_coord_1_grid, pupil_coord_2_grid = np.meshgrid(
-    np.linspace(-1, 1, psf_nres), np.linspace(-1, 1, psf_nres))
-OPD_grid = griddata((pupil_coord_1, pupil_coord_2), OPD, (pupil_coord_1_grid, pupil_coord_2_grid), method='cubic')
-print("OPD RMS: {0:.5f} nm".format(np.sqrt(np.nanmean(OPD_grid**2))*1e6))
-wavelength_mm = 550e-6  # 550nm
-phase = 2*np.pi*OPD_grid/wavelength_mm
-flux_map = base_grid*np.exp(1j*phase)
-phase = np.where(np.isnan(phase), 0, phase)
-flux_map = np.where(np.isnan(flux_map), 0, flux_map)
+# pupil_coord_1_grid, pupil_coord_2_grid = np.meshgrid(
+#     np.linspace(-1, 1, psf_nres), np.linspace(-1, 1, psf_nres))
+# OPD_grid = griddata((pupil_coord_1, pupil_coord_2), OPD, (pupil_coord_1_grid, pupil_coord_2_grid), method='cubic')
+# print("OPD RMS: {0:.5f} nm".format(np.sqrt(np.nanmean(OPD_grid**2))*1e6))
+# wavelength_mm = 550e-6  # 550nm
+# phase = 2*np.pi*OPD_grid/wavelength_mm
+# flux_map = base_grid*np.exp(1j*phase)
+# phase = np.where(np.isnan(phase), 0, phase)
+# flux_map = np.where(np.isnan(flux_map), 0, flux_map)
 
-# 周辺を0で埋める 解像度を上げるため
-pad_0 = 3
-phase = np.pad(phase, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
-flux_map = np.pad(flux_map, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
+# # 周辺を0で埋める 解像度を上げるため
+# pad_0 = 3
+# phase = np.pad(phase, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
+# flux_map = np.pad(flux_map, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
 
-wavefront = flux_map*np.exp(1j*phase)
-PSF = np.fft.fftshift(np.abs(np.fft.fft2(wavefront)**2))
-print("PSF peak: {0:.5f}".format(np.max(PSF)))
-pixel_scale = np.rad2deg(wavelength_mm/(2*203*pad_0))*3600  # arcsec/pixel
-print("pixel_scale: {0:.3f} arcsec/pixel".format(pixel_scale))
-extent = pixel_scale*pad_0*psf_nres/2
+# wavefront = flux_map*np.exp(1j*phase)
+# PSF = np.fft.fftshift(np.abs(np.fft.fft2(wavefront)**2))
+# print("PSF peak: {0:.5f}".format(np.max(PSF)))
+# pixel_scale = np.rad2deg(wavelength_mm/(2*203*pad_0))*3600  # arcsec/pixel
+# print("pixel_scale: {0:.3f} arcsec/pixel".format(pixel_scale))
+# extent = pixel_scale*pad_0*psf_nres/2
 
-# PSFのプロット
-fig = plt.figure(figsize=(5, 5))
-ax = fig.add_subplot(111)
-ax.set_xlabel("x [arcsec]")
-ax.set_ylabel("y [arcsec]")
-ax.set_title("PSF 550nm")
-mappable=ax.imshow(PSF, cmap="hot", extent=[-extent, extent, -extent, extent])
-fig.colorbar(mappable, ax=ax)
+# # PSFのプロット
+# fig = plt.figure(figsize=(5, 5))
+# ax = fig.add_subplot(111)
+# ax.set_xlabel("x [arcsec]")
+# ax.set_ylabel("y [arcsec]")
+# ax.set_title("PSF 550nm")
+# mappable=ax.imshow(PSF, cmap="hot", extent=[-extent, extent, -extent, extent])
+# fig.colorbar(mappable, ax=ax)
 
 # フィールドレンズの光線追跡
 # レンズ描画
