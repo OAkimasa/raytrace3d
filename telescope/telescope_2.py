@@ -71,9 +71,9 @@ collimate_lens_1 = [collimate_lens_pos+np.array([72.73*1, 0., 0.]), [1., 0., 0.]
 collimate_lens_2 = [collimate_lens_pos+np.array([72.73*1+3, 0., 0.]), [1., 0., 0.], 25.4, -80.6]
 collimate_lens_3 = [collimate_lens_pos+np.array([72.73*1+3+12, 0., 0.]), [1., 0., 0.], 25.4, 63.6]
 # M3  45deg reflector
-M3 = [[1630., 0., 0.], [np.cos(np.pi/4), 0., np.cos(np.pi/4)], 25.4, np.inf]
+M3 = [[1430., 0., 0.], [np.cos(np.pi/4), 0., np.cos(np.pi/4)], 25.4, np.inf]
 # M4  45deg reflector
-M4 = [[1630., 0., -100.], [np.cos(np.pi/4), 0., -np.cos(np.pi/4)], 25.4, np.inf]
+M4 = [[1430., 0., -100.], [np.cos(np.pi/4), 0., -np.cos(np.pi/4)], 25.4, np.inf]
 # 
 N_air = 1.0
 
@@ -347,43 +347,6 @@ ax.set_title("PSF 550nm")
 mappable=ax.imshow(PSF, cmap="hot", extent=[-extent, extent, -extent, extent])
 fig.colorbar(mappable, ax=ax)
 
-# # フィールドレンズの光線追跡
-# # レンズ描画
-# VF_1.plot_lens(field_lens_1)
-# VF_1.plot_lens(field_lens_2)
-# VF_1.plot_lens(field_lens_3)
-
-# # 引継ぎ
-# VF_1.ray_start_pos = VF_1.ray_end_pos
-# VF_1.ray_start_dir = VF_1.ray_end_dir
-# VF_1.set_surface(field_lens_1,
-#                 refractive_index_before=N_air,
-#                 refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
-#                 surface_name='field_lens_1')
-# VF_1.raytrace_sphere()  # 光線追跡
-# VF_1.refract()  # 空気からレンズ1の屈折
-# VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
-
-# VF_1.ray_start_pos = VF_1.ray_end_pos
-# VF_1.ray_start_dir = VF_1.ray_end_dir
-# VF_1.set_surface(field_lens_2,
-#                 refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
-#                 refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
-#                 surface_name='field_lens_2')
-# VF_1.raytrace_sphere()  # 光線追跡
-# VF_1.refract()  # レンズ1からレンズ2の屈折
-# VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
-
-# VF_1.ray_start_pos = VF_1.ray_end_pos
-# VF_1.ray_start_dir = VF_1.ray_end_dir
-# VF_1.set_surface(field_lens_3,
-#                 refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
-#                 refractive_index_after=N_air,
-#                 surface_name='field_lens_3')
-# VF_1.raytrace_sphere()  # 光線追跡
-# VF_1.refract()  # レンズ2から空気の屈折
-# VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
-
 y_list = VF_1.ray_end_pos[:, 1]
 z_list = VF_1.ray_end_pos[:, 2]
 pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
@@ -393,61 +356,8 @@ print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
 # print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
 # print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
 
-# コリメートレンズの光線追跡
-# レンズ描画
-VF_1.plot_lens(collimate_lens_1)
-VF_1.plot_lens(collimate_lens_2)
-VF_1.plot_lens(collimate_lens_3)
-
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(collimate_lens_1,
-                refractive_index_before=N_air,
-                refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
-                surface_name='collimate_lens_1')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # 空気からレンズ1の屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
-
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(collimate_lens_2,
-                refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
-                refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
-                surface_name='collimate_lens_2')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # レンズ1からレンズ2の屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
-
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(collimate_lens_3,
-                refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
-                refractive_index_after=N_air,
-                surface_name='collimate_lens_3')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # レンズ2から空気の屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
-
-evaluate_plane = [collimate_lens_3[0]+np.array([10,0,0]), [1., 0., 0.], 100, np.inf]
-# VF_1.plot_plane(evaluate_plane)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(evaluate_plane, surface_name='evaluate_plane')
-VF_1.raytrace_plane()  # 光線追跡
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
-
-y_list = VF_1.ray_end_pos[:, 1]
-z_list = VF_1.ray_end_pos[:, 2]
-pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
-print('pos_RMS = ', pos_RMS, 'mm')
-print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
-# print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
-# print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
-# print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
-
-# M3
-VF_1.plot_mirror(M3)
+# M3  45deg reflector
+VF_1.plot_mirror(M3)  # surface描画
 VF_1.ray_start_pos = VF_1.ray_end_pos
 VF_1.ray_start_dir = VF_1.ray_end_dir
 VF_1.set_surface(M3, surface_name='M3')
@@ -455,8 +365,8 @@ VF_1.raytrace_plane()  # 光線追跡
 VF_1.reflect()  # 反射
 VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# M4
-VF_1.plot_mirror(M4)
+# M4  45deg reflector
+VF_1.plot_mirror(M4)  # surface描画
 VF_1.ray_start_pos = VF_1.ray_end_pos
 VF_1.ray_start_dir = VF_1.ray_end_dir
 VF_1.set_surface(M4, surface_name='M4')
@@ -464,13 +374,22 @@ VF_1.raytrace_plane()  # 光線追跡
 VF_1.reflect()  # 反射
 VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-evaluate_plane = [M4[0]+np.array([-600,0,0]), [1., 0., 0.], 100, np.inf]
-VF_1.plot_plane(evaluate_plane)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(evaluate_plane, surface_name='evaluate_plane')
-VF_1.raytrace_plane()  # 光線追跡
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+# evaluate_plane = [M3[0]+np.array([-100,0,0]), [1., 0., 0.], 100, np.inf]
+# VF_1.plot_plane(evaluate_plane)  # surface描画
+# VF_1.ray_start_pos = VF_1.ray_end_pos
+# VF_1.ray_start_dir = VF_1.ray_end_dir
+# VF_1.set_surface(evaluate_plane, surface_name='evaluate_plane')
+# VF_1.raytrace_plane()  # 光線追跡
+# VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+# y_list = VF_1.ray_end_pos[:, 1]
+# z_list = VF_1.ray_end_pos[:, 2]
+# pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
+# print('pos_RMS = ', pos_RMS, 'mm')
+# print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
+# # print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
+# # print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
+# # print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
 
 
 print("run time: {0:.3f} sec".format(time.time() - start))
