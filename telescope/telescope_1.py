@@ -59,10 +59,14 @@ secondary_mirror = [[0.+shift_pos_secondary_mirror[0], 0.+shift_pos_secondary_mi
 # AC508_080_AB_ML: f=80mm, d=50.8mm(2inch)
 N_AC508_080_AB_ML_G1_550nm = 1.65361794505  # N-LAK22
 N_AC508_080_AB_ML_G2_550nm = 1.81186626679  # N-SF6
-lens_pos = np.array([1491.75, 0., 0.])
-collimate_lens_1 = [lens_pos+np.array([72.73, 0., 0.]), [1., 0., 0.], 25.4, -181.7]
-collimate_lens_2 = [lens_pos+np.array([72.73+3, 0., 0.]), [1., 0., 0.], 25.4, -80.6]
-collimate_lens_3 = [lens_pos+np.array([72.73+3+12, 0., 0.]), [1., 0., 0.], 25.4, 63.6]
+field_lens_pos = np.array([1491.75-72.73*1, 0., 0.])
+field_lens_1 = [field_lens_pos+np.array([72.73*1, 0., 0.]), [1., 0., 0.], 25.4, -181.7]
+field_lens_2 = [field_lens_pos+np.array([72.73*1+3, 0., 0.]), [1., 0., 0.], 25.4, -80.6]
+field_lens_3 = [field_lens_pos+np.array([72.73*1+3+12, 0., 0.]), [1., 0., 0.], 25.4, 63.6]
+collimate_lens_pos = np.array([1491.75, 0., 0.])
+collimate_lens_1 = [collimate_lens_pos+np.array([72.73*1, 0., 0.]), [1., 0., 0.], 25.4, -181.7]
+collimate_lens_2 = [collimate_lens_pos+np.array([72.73*1+3, 0., 0.]), [1., 0., 0.], 25.4, -80.6]
+collimate_lens_3 = [collimate_lens_pos+np.array([72.73*1+3+12, 0., 0.]), [1., 0., 0.], 25.4, 63.6]
 N_air = 1.0
 
 # 光線の終点に注目し、光学素子の中心からaperture_Rの範囲内にあるかどうかを判定する関数
@@ -335,13 +339,58 @@ ax.set_title("PSF 550nm")
 mappable=ax.imshow(PSF, cmap="hot", extent=[-extent, extent, -extent, extent])
 fig.colorbar(mappable, ax=ax)
 
-# コリメーターレンズの光線追跡
+# フィールドレンズの光線追跡
+# レンズ描画
+VF_1.plot_lens(field_lens_1)
+VF_1.plot_lens(field_lens_2)
+VF_1.plot_lens(field_lens_3)
+
+# 引継ぎ
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(field_lens_1,
+                refractive_index_before=N_air,
+                refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
+                surface_name='field_lens_1')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # 空気からレンズ1の屈折
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(field_lens_2,
+                refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
+                refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
+                surface_name='field_lens_2')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # レンズ1からレンズ2の屈折
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(field_lens_3,
+                refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
+                refractive_index_after=N_air,
+                surface_name='field_lens_3')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # レンズ2から空気の屈折
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+y_list = VF_1.ray_end_pos[:, 1]
+z_list = VF_1.ray_end_pos[:, 2]
+pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
+print('pos_RMS = ', pos_RMS, 'mm')
+print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
+# print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
+# print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
+# print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
+
+# コリメートレンズの光線追跡
 # レンズ描画
 VF_1.plot_lens(collimate_lens_1)
 VF_1.plot_lens(collimate_lens_2)
 VF_1.plot_lens(collimate_lens_3)
 
-# 引継ぎ
 VF_1.ray_start_pos = VF_1.ray_end_pos
 VF_1.ray_start_dir = VF_1.ray_end_dir
 VF_1.set_surface(collimate_lens_1,
@@ -371,15 +420,6 @@ VF_1.set_surface(collimate_lens_3,
 VF_1.raytrace_sphere()  # 光線追跡
 VF_1.refract()  # レンズ2から空気の屈折
 VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
-
-y_list = VF_1.ray_end_pos[:, 1]
-z_list = VF_1.ray_end_pos[:, 2]
-pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
-print('pos_RMS = ', pos_RMS, 'mm')
-print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
-# print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
-# print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
-# print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
 
 evaluate_plane = [[2000, 0., 0.], [1., 0., 0.], 100, np.inf]
 VF_1.plot_plane(evaluate_plane)  # surface描画
