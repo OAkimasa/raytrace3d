@@ -1,3 +1,4 @@
+from weakref import ref
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -56,25 +57,29 @@ primary_mirror = [[900+shift_pos_primary_mirror[0], 0.+shift_pos_primary_mirror[
 secondary_mirror = [[0.+shift_pos_secondary_mirror[0], 0.+shift_pos_secondary_mirror[1], 0.+shift_pos_secondary_mirror[2]],
                     [1, 0, 0],
                     95, 2599.1878, -14.9438]
+
+# M3  45deg reflector
+M3 = [[1530., 0., 0.], [np.cos(np.pi/4), 0., np.cos(np.pi/4)], 25.4, np.inf]
+
 # AC508_080_AB_ML: f=80mm, d=50.8mm(2inch)
 N_AC508_080_AB_ML_G1_550nm = 1.65361794505  # N-LAK22
 N_AC508_080_AB_ML_G2_550nm = 1.81186626679  # N-SF6
-# field_lens_pos = np.array([1491.75-72.73+40, 0., 0.])
-# # field_lens_1 = [field_lens_pos+np.array([72.73*1, 0., 0.]), [1., 0., 0.], 25.4, -181.7]
-# # field_lens_2 = [field_lens_pos+np.array([72.73*1+3, 0., 0.]), [1., 0., 0.], 25.4, -80.6]
-# # field_lens_3 = [field_lens_pos+np.array([72.73*1+3+12, 0., 0.]), [1., 0., 0.], 25.4, 63.6]
-# field_lens_1 = [field_lens_pos+np.array([72.73*1, 0., 0.]), [1., 0., 0.], 25.4, -328.2]
-# field_lens_2 = [field_lens_pos+np.array([72.73*1+4, 0., 0.]), [1., 0., 0.], 25.4, -115.4]
-# field_lens_3 = [field_lens_pos+np.array([72.73*1+4+9.5, 0., 0.]), [1., 0., 0.], 25.4, 144.4]
-collimate_lens_pos = np.array([1491.75, 0., 0.])
-collimate_lens_1 = [collimate_lens_pos+np.array([72.73*1, 0., 0.]), [1., 0., 0.], 25.4, -181.7]
-collimate_lens_2 = [collimate_lens_pos+np.array([72.73*1+3, 0., 0.]), [1., 0., 0.], 25.4, -80.6]
-collimate_lens_3 = [collimate_lens_pos+np.array([72.73*1+3+12, 0., 0.]), [1., 0., 0.], 25.4, 63.6]
-# M3  45deg reflector
-M3 = [[1430., 0., 0.], [np.cos(np.pi/4), 0., np.cos(np.pi/4)], 25.4, np.inf]
+collimate_lens_pos = np.array([1530., 0., 40.])
+collimate_lens_1 = [collimate_lens_pos+np.array([0., 0., -72.73]), [0., 0., -1.], 25.4, 181.7]  # AC508_080_AB_ML G2b
+collimate_lens_2 = [collimate_lens_pos+np.array([0., 0., -72.73-3]), [0., 0., -1.], 25.4, 80.6]  # AC508_080_AB_ML G1bG2f
+collimate_lens_3 = [collimate_lens_pos+np.array([0., 0., -72.73-3-12]), [0., 0., -1.], 25.4, -63.6]  # AC508_080_AB_ML G1f
+
 # M4  45deg reflector
-M4 = [[1430., 0., -100.], [np.cos(np.pi/4), 0., -np.cos(np.pi/4)], 25.4, np.inf]
-# 
+M4 = [[1530., 0., -100.], [np.cos(np.pi/4), 0., -np.cos(np.pi/4)], 25.4, np.inf]
+
+# AC508_080_AB_ML: f=80mm, d=50.8mm(2inch)
+N_AC508_080_AB_ML_G1_550nm = 1.65361794505  # N-LAK22
+N_AC508_080_AB_ML_G2_550nm = 1.81186626679  # N-SF6
+field_lens_pos = np.array([1390., 0., -100.])
+field_lens_1 = [field_lens_pos+np.array([3+12, 0., 0.]), [-1., 0., 0.], 25.4, +63.6]  # AC508_080_AB_ML G1f
+field_lens_2 = [field_lens_pos+np.array([3, 0., 0.]), [-1., 0., 0.], 25.4, -80.6]  # AC508_080_AB_ML G1bG2f
+field_lens_3 = [field_lens_pos+np.array([0., 0., 0]), [-1., 0., 0.], 25.4, -181.7]  # AC508_080_AB_ML G2b
+
 N_air = 1.0
 
 # 光線の終点に注目し、光学素子の中心からaperture_Rの範囲内にあるかどうかを判定する関数
@@ -117,9 +122,9 @@ def is_in_spider(ray_end_point):
 
 # 始点を生成する ===============================================================
 # angle_incident = 0.  # deg
-angle_incident = 0.1  # deg
-# angle_incident = 0.2  # deg
-angle_incident = 0.25  # deg
+# angle_incident = 0.1  # deg
+angle_incident = 0.2  # deg
+# angle_incident = 0.25  # deg
 width = 200
 space = 20
 rayDensity = 1
@@ -141,17 +146,18 @@ raySPoints = VF_1.make_points(pointsX, pointsY, pointsZ, size, 3)
 # ray_start_dir_init = np.array([[np.cos(np.deg2rad(angle_incident)),
 #                                 0.0,
 #                                 np.sin(np.deg2rad(angle_incident))]]*len(raySPoints))  # 初期値
-# 入射角2つを同時に計算
+# 入射角3つを同時に計算
 ray_start_dir_init_1 = [[1.0, 0.0, 0.0]]*len(raySPoints)  # 初期値
-# print("ray_start_dir_init_1.shape: ", ray_start_dir_init_1.shape)
 ray_start_dir_init_2 = [[np.cos(np.deg2rad(angle_incident)),
                                 0.,
                                 np.sin(np.deg2rad(angle_incident))]]*len(raySPoints)  # 初期値
-# print("ray_start_dir_init_2.shape: ", ray_start_dir_init_2.shape)
+ray_start_dir_init_3 = [[np.cos(np.deg2rad(angle_incident)),
+                                0.,
+                                np.sin(np.deg2rad(-angle_incident))]]*len(raySPoints)  # 初期値
 # 結合
-ray_start_dir_init = ray_start_dir_init_1 + ray_start_dir_init_2
+ray_start_dir_init = ray_start_dir_init_1 + ray_start_dir_init_2 + ray_start_dir_init_3
 ray_start_dir_init = np.array(ray_start_dir_init)
-raySPoints = np.array(list(raySPoints)+list(raySPoints))
+raySPoints = np.array(list(raySPoints)+list(raySPoints)+list(raySPoints))
 
 print("ray_start_dir_init.shape: ", ray_start_dir_init.shape)
 print("raySPoints.shape: ", raySPoints.shape)
@@ -273,7 +279,7 @@ KGT40_last_ray_pos = VF_1.ray_end_pos  # secondary_mirrorの終点を保存
 KGT40_last_ray_dir = VF_1.ray_end_dir  # secondary_mirrorの終点を保存
 # 主焦点を計算
 evaluate_plane = [[1498.75, 0., 0.], [1., 0., 0.], 100, np.inf]
-# VF_1.plot_plane(evaluate_plane)  # surface描画
+VF_1.plot_plane(evaluate_plane)  # surface描画
 # secondary_mirrorの終点をevaluate_planeの始点に
 VF_1.ray_start_pos = KGT40_last_ray_pos
 # secondary_mirrorの終点をevaluate_planeの始点に
@@ -343,7 +349,7 @@ fig = plt.figure(figsize=(5, 5))
 ax = fig.add_subplot(111)
 ax.set_xlabel("x [arcsec]")
 ax.set_ylabel("y [arcsec]")
-ax.set_title("PSF 550nm")
+ax.set_title("Prime Focus PSF 550nm")
 mappable=ax.imshow(PSF, cmap="hot", extent=[-extent, extent, -extent, extent])
 fig.colorbar(mappable, ax=ax)
 
@@ -358,11 +364,47 @@ print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
 
 # M3  45deg reflector
 VF_1.plot_mirror(M3)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.ray_start_pos = KGT40_last_ray_pos
+VF_1.ray_start_dir = KGT40_last_ray_dir
 VF_1.set_surface(M3, surface_name='M3')
 VF_1.raytrace_plane()  # 光線追跡
 VF_1.reflect()  # 反射
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+# collimate_lens_1
+VF_1.plot_lens(collimate_lens_1)  # surface描画
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(collimate_lens_1,
+                refractive_index_before=N_air,
+                refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
+                surface_name='collimate_lens_1')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # 屈折
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+# collimate_lens_2
+VF_1.plot_lens(collimate_lens_2)  # surface描画
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(collimate_lens_2,
+                refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
+                refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
+                surface_name='collimate_lens_2')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # 屈折
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+# collimate_lens_3
+VF_1.plot_lens(collimate_lens_3)  # surface描画
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(collimate_lens_3,
+                refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
+                refractive_index_after=N_air,
+                surface_name='collimate_lens_3')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # 屈折
 VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
 # M4  45deg reflector
@@ -374,22 +416,58 @@ VF_1.raytrace_plane()  # 光線追跡
 VF_1.reflect()  # 反射
 VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# evaluate_plane = [M3[0]+np.array([-100,0,0]), [1., 0., 0.], 100, np.inf]
-# VF_1.plot_plane(evaluate_plane)  # surface描画
-# VF_1.ray_start_pos = VF_1.ray_end_pos
-# VF_1.ray_start_dir = VF_1.ray_end_dir
-# VF_1.set_surface(evaluate_plane, surface_name='evaluate_plane')
-# VF_1.raytrace_plane()  # 光線追跡
-# VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+# field_lens_1
+VF_1.plot_lens(field_lens_1)  # surface描画
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(field_lens_1,
+                refractive_index_before=N_air,
+                refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
+                surface_name='field_lens_1')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # 屈折
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# y_list = VF_1.ray_end_pos[:, 1]
-# z_list = VF_1.ray_end_pos[:, 2]
-# pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
-# print('pos_RMS = ', pos_RMS, 'mm')
-# print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
-# # print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
-# # print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
-# # print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
+# field_lens_2
+VF_1.plot_lens(field_lens_2)  # surface描画
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(field_lens_2,
+                refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
+                refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
+                surface_name='field_lens_2')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # 屈折
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+# field_lens_3
+VF_1.plot_lens(field_lens_3)  # surface描画
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(field_lens_3,
+                refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
+                refractive_index_after=N_air,
+                surface_name='field_lens_3')
+VF_1.raytrace_sphere()  # 光線追跡
+VF_1.refract()  # 屈折
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+evaluate_plane = [M4[0]+np.array([-500,0,0]), [1., 0., 0.], 100, np.inf]
+VF_1.plot_plane(evaluate_plane)  # surface描画
+VF_1.ray_start_pos = VF_1.ray_end_pos
+VF_1.ray_start_dir = VF_1.ray_end_dir
+VF_1.set_surface(evaluate_plane, surface_name='evaluate_plane')
+VF_1.raytrace_plane()  # 光線追跡
+VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+y_list = VF_1.ray_end_pos[:, 1]
+z_list = VF_1.ray_end_pos[:, 2]
+pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
+print('pos_RMS = ', pos_RMS, 'mm')
+print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
+# print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
+# print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
+# print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
 
 
 print("run time: {0:.3f} sec".format(time.time() - start))
