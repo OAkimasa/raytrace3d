@@ -1,4 +1,3 @@
-from weakref import ref
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -72,6 +71,7 @@ collimate_lens_3 = [collimate_lens_pos+np.array([0., 0., -72.73-3-12]), [0., 0.,
 # M4  45deg reflector
 M4 = [[1530., 0., -100.], [np.cos(np.pi/4), 0., -np.cos(np.pi/4)], 25.4, np.inf]
 
+# field lens
 # AC508_080_AB_ML: f=80mm, d=50.8mm(2inch)
 N_AC508_080_AB_ML_G1_550nm = 1.65361794505  # N-LAK22
 N_AC508_080_AB_ML_G2_550nm = 1.81186626679  # N-SF6
@@ -79,6 +79,15 @@ field_lens_pos = np.array([1390., 0., -100.])
 field_lens_1 = [field_lens_pos+np.array([3+12, 0., 0.]), [-1., 0., 0.], 25.4, +63.6]  # AC508_080_AB_ML G1f
 field_lens_2 = [field_lens_pos+np.array([3, 0., 0.]), [-1., 0., 0.], 25.4, -80.6]  # AC508_080_AB_ML G1bG2f
 field_lens_3 = [field_lens_pos+np.array([0., 0., 0]), [-1., 0., 0.], 25.4, -181.7]  # AC508_080_AB_ML G2b
+
+# re-imaging lens
+# AC508_080_AB_ML: f=80mm, d=50.8mm(2inch)
+N_AC508_080_AB_ML_G1_550nm = 1.65361794505  # N-LAK22
+N_AC508_080_AB_ML_G2_550nm = 1.81186626679  # N-SF6
+reimaging_lens_pos = np.array([1300., 0., -100.])
+reimaging_lens_1 = [reimaging_lens_pos+np.array([3+12, 0., 0.]), [-1., 0., 0.], 25.4, +63.6]  # AC508_080_AB_ML G1f
+reimaging_lens_2 = [reimaging_lens_pos+np.array([3, 0., 0.]), [-1., 0., 0.], 25.4, -80.6]  # AC508_080_AB_ML G1bG2f
+reimaging_lens_3 = [reimaging_lens_pos+np.array([0., 0., 0]), [-1., 0., 0.], 25.4, -181.7]  # AC508_080_AB_ML G2b
 
 N_air = 1.0
 
@@ -277,180 +286,312 @@ def KGT40_mirror():
 KGT40_mirror()  # 副鏡までの光線追跡
 KGT40_last_ray_pos = VF_1.ray_end_pos  # secondary_mirrorの終点を保存
 KGT40_last_ray_dir = VF_1.ray_end_dir  # secondary_mirrorの終点を保存
-# 主焦点を計算
-evaluate_plane = [[1498.75, 0., 0.], [1., 0., 0.], 100, np.inf]
-VF_1.plot_plane(evaluate_plane)  # surface描画
-# secondary_mirrorの終点をevaluate_planeの始点に
-VF_1.ray_start_pos = KGT40_last_ray_pos
-# secondary_mirrorの終点をevaluate_planeの始点に
-VF_1.ray_start_dir = KGT40_last_ray_dir
-# evaluate_planeを登録
-VF_1.set_surface(evaluate_plane, surface_name='evaluate_plane')
-VF_1.raytrace_plane()  # 光線追跡
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-y_list = VF_1.ray_end_pos[:, 1]
-z_list = VF_1.ray_end_pos[:, 2]
-pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
-print('pos_RMS = ', pos_RMS, 'mm')
-print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
-print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
-print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
-print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
+def calc_prime_focus():
+    # 主焦点を計算
+    evaluate_plane = [[1498.75, 0., 0.], [1., 0., 0.], 100, np.inf]
+    VF_1.plot_plane(evaluate_plane)  # surface描画
+    # secondary_mirrorの終点をevaluate_planeの始点に
+    VF_1.ray_start_pos = KGT40_last_ray_pos
+    # secondary_mirrorの終点をevaluate_planeの始点に
+    VF_1.ray_start_dir = KGT40_last_ray_dir
+    # evaluate_planeを登録
+    VF_1.set_surface(evaluate_plane, surface_name='evaluate_plane')
+    VF_1.raytrace_plane()  # 光線追跡
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# 光路差を計算
-OPD = VF_1.optical_path_length - np.mean(VF_1.optical_path_length)  # mm
-pupil_coord_1 = ray_start_pos_init[:, 1]/203
-pupil_coord_2 = ray_start_pos_init[:, 2]/203
-# # OPDのプロット
-# fig = plt.figure()
-# ax = fig.add_subplot(111, projection='3d')
-# ax.set_xlabel("puil_coord_1")
-# ax.set_ylabel("puil_coord_2")
-# ax.set_zlabel("OPD [mm]")
-# ax.set_title("OPD")
-# ax.scatter(pupil_coord_1, pupil_coord_2, OPD)
+    y_list = VF_1.ray_end_pos[:, 1]
+    z_list = VF_1.ray_end_pos[:, 2]
+    pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
+    print('pos_RMS = ', pos_RMS, 'mm')
+    print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
+    print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
+    print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
+    print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
 
-# PSFの計算
-psf_nres = 100
-base_grid = np.ones((psf_nres, psf_nres))
-# 単位円の外は0にする
-base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
-                  (np.arange(psf_nres)[:, np.newaxis]-50)**2) > 50] = 0
-# 副鏡遮蔽
-base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
-                  (np.arange(psf_nres)[:, np.newaxis]-50)**2) < 50*(95/203)] = 0
-flux_map = base_grid.copy()
+    # 光路差を計算
+    OPD = VF_1.optical_path_length - np.mean(VF_1.optical_path_length)  # mm
+    pupil_coord_1 = ray_start_pos_init[:, 1]/203
+    pupil_coord_2 = ray_start_pos_init[:, 2]/203
+    # # OPDのプロット
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.set_xlabel("puil_coord_1")
+    # ax.set_ylabel("puil_coord_2")
+    # ax.set_zlabel("OPD [mm]")
+    # ax.set_title("OPD")
+    # ax.scatter(pupil_coord_1, pupil_coord_2, OPD)
 
-pupil_coord_1_grid, pupil_coord_2_grid = np.meshgrid(
-    np.linspace(-1, 1, psf_nres), np.linspace(-1, 1, psf_nres))
-OPD_grid = griddata((pupil_coord_1, pupil_coord_2), OPD, (pupil_coord_1_grid, pupil_coord_2_grid), method='cubic')
-print("OPD RMS: {0:.5f} nm".format(np.sqrt(np.nanmean(OPD_grid**2))*1e6))
-wavelength_mm = 550e-6  # 550nm
-phase = 2*np.pi*OPD_grid/wavelength_mm
-flux_map = base_grid*np.exp(1j*phase)
-phase = np.where(np.isnan(phase), 0, phase)
-flux_map = np.where(np.isnan(flux_map), 0, flux_map)
+    # PSFの計算
+    psf_nres = 100
+    base_grid = np.ones((psf_nres, psf_nres))
+    # 単位円の外は0にする
+    base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
+                    (np.arange(psf_nres)[:, np.newaxis]-50)**2) > 50] = 0
+    # 副鏡遮蔽
+    base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
+                    (np.arange(psf_nres)[:, np.newaxis]-50)**2) < 50*(95/203)] = 0
+    flux_map = base_grid.copy()
 
-# 周辺を0で埋める 解像度を上げるため
-pad_0 = 3
-phase = np.pad(phase, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
-flux_map = np.pad(flux_map, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
+    pupil_coord_1_grid, pupil_coord_2_grid = np.meshgrid(
+        np.linspace(-1, 1, psf_nres), np.linspace(-1, 1, psf_nres))
+    OPD_grid = griddata((pupil_coord_1, pupil_coord_2), OPD, (pupil_coord_1_grid, pupil_coord_2_grid), method='cubic')
+    print("OPD RMS: {0:.5f} nm".format(np.sqrt(np.nanmean(OPD_grid**2))*1e6))
+    wavelength_mm = 550e-6  # 550nm
+    phase = 2*np.pi*OPD_grid/wavelength_mm
+    flux_map = base_grid*np.exp(1j*phase)
+    phase = np.where(np.isnan(phase), 0, phase)
+    flux_map = np.where(np.isnan(flux_map), 0, flux_map)
 
-wavefront = flux_map*np.exp(1j*phase)
-PSF = np.fft.fftshift(np.abs(np.fft.fft2(wavefront)**2))
-print("PSF peak: {0:.5f}".format(np.max(PSF)))
-pixel_scale = np.rad2deg(wavelength_mm/(2*203*pad_0))*3600  # arcsec/pixel
-print("pixel_scale: {0:.3f} arcsec/pixel".format(pixel_scale))
-extent = pixel_scale*pad_0*psf_nres/2
+    # 周辺を0で埋める 解像度を上げるため
+    pad_0 = 3
+    phase = np.pad(phase, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
+    flux_map = np.pad(flux_map, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
 
-# PSFのプロット
-fig = plt.figure(figsize=(5, 5))
-ax = fig.add_subplot(111)
-ax.set_xlabel("x [arcsec]")
-ax.set_ylabel("y [arcsec]")
-ax.set_title("Prime Focus PSF 550nm")
-mappable=ax.imshow(PSF, cmap="hot", extent=[-extent, extent, -extent, extent])
-fig.colorbar(mappable, ax=ax)
+    wavefront = flux_map*np.exp(1j*phase)
+    PSF = np.fft.fftshift(np.abs(np.fft.fft2(wavefront)**2))
+    print("PSF peak: {0:.5f}".format(np.max(PSF)))
+    pixel_scale = np.rad2deg(wavelength_mm/(2*203*pad_0))*3600  # arcsec/pixel
+    print("pixel_scale: {0:.3f} arcsec/pixel".format(pixel_scale))
+    extent = pixel_scale*pad_0*psf_nres/2
 
-y_list = VF_1.ray_end_pos[:, 1]
-z_list = VF_1.ray_end_pos[:, 2]
-pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
-print('pos_RMS = ', pos_RMS, 'mm')
-print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
-# print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
-# print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
-# print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
+    # PSFのプロット
+    fig = plt.figure(figsize=(5, 5))
+    ax = fig.add_subplot(111)
+    ax.set_xlabel("x [arcsec]")
+    ax.set_ylabel("y [arcsec]")
+    ax.set_title("Prime Focus PSF 550nm")
+    mappable=ax.imshow(PSF, cmap="hot", extent=[-extent, extent, -extent, extent])
+    fig.colorbar(mappable, ax=ax)
 
-# M3  45deg reflector
-VF_1.plot_mirror(M3)  # surface描画
-VF_1.ray_start_pos = KGT40_last_ray_pos
-VF_1.ray_start_dir = KGT40_last_ray_dir
-VF_1.set_surface(M3, surface_name='M3')
-VF_1.raytrace_plane()  # 光線追跡
-VF_1.reflect()  # 反射
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+    y_list = VF_1.ray_end_pos[:, 1]
+    z_list = VF_1.ray_end_pos[:, 2]
+    pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
+    print('pos_RMS = ', pos_RMS, 'mm')
+    print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
+    # print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
+    # print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
+    # print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
+calc_prime_focus()
 
-# collimate_lens_1
-VF_1.plot_lens(collimate_lens_1)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(collimate_lens_1,
-                refractive_index_before=N_air,
-                refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
-                surface_name='collimate_lens_1')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # 屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+def relay_optics():
+    # M3  45deg reflector
+    VF_1.plot_mirror(M3)  # surface描画
+    VF_1.ray_start_pos = KGT40_last_ray_pos
+    VF_1.ray_start_dir = KGT40_last_ray_dir
+    VF_1.set_surface(M3, surface_name='M3')
+    VF_1.raytrace_plane()  # 光線追跡
+    VF_1.reflect()  # 反射
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# collimate_lens_2
-VF_1.plot_lens(collimate_lens_2)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(collimate_lens_2,
-                refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
-                refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
-                surface_name='collimate_lens_2')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # 屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+    # collimate_lens_1
+    VF_1.plot_lens(collimate_lens_1)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(collimate_lens_1,
+                    refractive_index_before=N_air,
+                    refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
+                    surface_name='collimate_lens_1')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# collimate_lens_3
-VF_1.plot_lens(collimate_lens_3)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(collimate_lens_3,
-                refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
-                refractive_index_after=N_air,
-                surface_name='collimate_lens_3')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # 屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+    # collimate_lens_2
+    VF_1.plot_lens(collimate_lens_2)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(collimate_lens_2,
+                    refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
+                    refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
+                    surface_name='collimate_lens_2')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# M4  45deg reflector
-VF_1.plot_mirror(M4)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(M4, surface_name='M4')
-VF_1.raytrace_plane()  # 光線追跡
-VF_1.reflect()  # 反射
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+    # collimate_lens_3
+    VF_1.plot_lens(collimate_lens_3)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(collimate_lens_3,
+                    refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
+                    refractive_index_after=N_air,
+                    surface_name='collimate_lens_3')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# field_lens_1
-VF_1.plot_lens(field_lens_1)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(field_lens_1,
-                refractive_index_before=N_air,
-                refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
-                surface_name='field_lens_1')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # 屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+    # M4  45deg reflector
+    VF_1.plot_mirror(M4)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(M4, surface_name='M4')
+    VF_1.raytrace_plane()  # 光線追跡
+    VF_1.reflect()  # 反射
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+relay_optics()
 
-# field_lens_2
-VF_1.plot_lens(field_lens_2)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(field_lens_2,
-                refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
-                refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
-                surface_name='field_lens_2')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # 屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+def field_lens():
+    # field_lens_1
+    VF_1.plot_lens(field_lens_1)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(field_lens_1,
+                    refractive_index_before=N_air,
+                    refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
+                    surface_name='field_lens_1')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
-# field_lens_3
-VF_1.plot_lens(field_lens_3)  # surface描画
-VF_1.ray_start_pos = VF_1.ray_end_pos
-VF_1.ray_start_dir = VF_1.ray_end_dir
-VF_1.set_surface(field_lens_3,
-                refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
-                refractive_index_after=N_air,
-                surface_name='field_lens_3')
-VF_1.raytrace_sphere()  # 光線追跡
-VF_1.refract()  # 屈折
-VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+    # field_lens_2
+    VF_1.plot_lens(field_lens_2)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(field_lens_2,
+                    refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
+                    refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
+                    surface_name='field_lens_2')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+    # field_lens_3
+    VF_1.plot_lens(field_lens_3)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(field_lens_3,
+                    refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
+                    refractive_index_after=N_air,
+                    surface_name='field_lens_3')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+field_lens()
+
+def calc_focus():
+    # 焦点を計算
+    evaluate_plane = [[1350, 0., -100.], [1., 0., 0.], 100, np.inf]
+    VF_1.plot_plane(evaluate_plane)  # surface描画
+    # secondary_mirrorの終点をevaluate_planeの始点に
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    # secondary_mirrorの終点をevaluate_planeの始点に
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    # evaluate_planeを登録
+    VF_1.set_surface(evaluate_plane, surface_name='evaluate_plane')
+    VF_1.raytrace_plane()  # 光線追跡
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+    y_list = VF_1.ray_end_pos[:, 1]
+    z_list = VF_1.ray_end_pos[:, 2]
+    pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
+    print('pos_RMS = ', pos_RMS, 'mm')
+    print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
+    print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
+    print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
+    print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
+
+    # 光路差を計算
+    OPD = VF_1.optical_path_length - np.mean(VF_1.optical_path_length)  # mm
+    pupil_coord_1 = ray_start_pos_init[:, 1]/203
+    pupil_coord_2 = ray_start_pos_init[:, 2]/203
+    # OPDのプロット
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_xlabel("puil_coord_1")
+    ax.set_ylabel("puil_coord_2")
+    ax.set_zlabel("OPD [mm]")
+    ax.set_title("OPD")
+    ax.scatter(pupil_coord_1, pupil_coord_2, OPD)
+
+    # PSFの計算
+    psf_nres = 1024
+    base_grid = np.ones((psf_nres, psf_nres))
+    # 単位円の外は0にする
+    base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
+                    (np.arange(psf_nres)[:, np.newaxis]-50)**2) > 50] = 0
+    # 副鏡遮蔽
+    base_grid[np.sqrt((np.arange(psf_nres)-50)**2 +
+                    (np.arange(psf_nres)[:, np.newaxis]-50)**2) < 50*(95/203)] = 0
+    flux_map = base_grid.copy()
+
+    pupil_coord_1_grid, pupil_coord_2_grid = np.meshgrid(
+        np.linspace(-1, 1, psf_nres), np.linspace(-1, 1, psf_nres))
+    OPD_grid = griddata((pupil_coord_1, pupil_coord_2), OPD, (pupil_coord_1_grid, pupil_coord_2_grid), method='cubic')
+    print("OPD RMS: {0:.5f} nm".format(np.sqrt(np.nanmean(OPD_grid**2))*1e6))
+    wavelength_mm = 550e-6  # 550nm
+    phase = 2*np.pi*OPD_grid/wavelength_mm
+    flux_map = base_grid*np.exp(1j*phase)
+    phase = np.where(np.isnan(phase), 0, phase)
+    flux_map = np.where(np.isnan(flux_map), 0, flux_map)
+
+    # 周辺を0で埋める 解像度を上げるため
+    pad_0 = 3
+    phase = np.pad(phase, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
+    flux_map = np.pad(flux_map, [(psf_nres, psf_nres), (psf_nres, psf_nres)], 'constant')
+
+    wavefront = flux_map*np.exp(1j*phase)
+    PSF = np.fft.fftshift(np.abs(np.fft.fft2(wavefront)**2))
+    print("PSF peak: {0:.5f}".format(np.max(PSF)))
+    pixel_scale = np.rad2deg(wavelength_mm/(2*203*pad_0))*3600  # arcsec/pixel
+    print("pixel_scale: {0:.3f} arcsec/pixel".format(pixel_scale))
+    extent = pixel_scale*pad_0*psf_nres/2
+
+    # PSFのプロット
+    fig = plt.figure(figsize=(5, 5))
+    ax = fig.add_subplot(111)
+    ax.set_xlabel("x [arcsec]")
+    ax.set_ylabel("y [arcsec]")
+    ax.set_title("Focus PSF 550nm")
+    mappable=ax.imshow(PSF, cmap="hot", extent=[-extent, extent, -extent, extent])
+    fig.colorbar(mappable, ax=ax)
+
+    y_list = VF_1.ray_end_pos[:, 1]
+    z_list = VF_1.ray_end_pos[:, 2]
+    pos_RMS = np.sqrt(np.nanmean(y_list**2 + z_list**2))
+    print('pos_RMS = ', pos_RMS, 'mm')
+    print('pos_r_max = ', np.nanmax(np.sqrt(y_list**2 + z_list**2)), 'mm')
+    # print('pos_x mean = ', np.nanmean(VF_1.ray_end_pos[:, 0]), 'mm')
+    # print('pos_y mean = ', np.nanmean(VF_1.ray_end_pos[:, 1]), 'mm')
+    # print('pos_z mean = ', np.nanmean(VF_1.ray_end_pos[:, 2]), 'mm')
+calc_focus()
+
+def reimaging_lens():
+    # reimaging_lens_1
+    VF_1.plot_lens(reimaging_lens_1)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(reimaging_lens_1,
+                    refractive_index_before=N_air,
+                    refractive_index_after=N_AC508_080_AB_ML_G1_550nm,
+                    surface_name='reimaging_lens_1')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+    # reimaging_lens_2
+    VF_1.plot_lens(reimaging_lens_2)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(reimaging_lens_2,
+                    refractive_index_before=N_AC508_080_AB_ML_G1_550nm,
+                    refractive_index_after=N_AC508_080_AB_ML_G2_550nm,
+                    surface_name='reimaging_lens_2')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+
+    # reimaging_lens_3
+    VF_1.plot_lens(reimaging_lens_3)  # surface描画
+    VF_1.ray_start_pos = VF_1.ray_end_pos
+    VF_1.ray_start_dir = VF_1.ray_end_dir
+    VF_1.set_surface(reimaging_lens_3,
+                    refractive_index_before=N_AC508_080_AB_ML_G2_550nm,
+                    refractive_index_after=N_air,
+                    surface_name='reimaging_lens_3')
+    VF_1.raytrace_sphere()  # 光線追跡
+    VF_1.refract()  # 屈折
+    VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
+reimaging_lens()
 
 evaluate_plane = [M4[0]+np.array([-500,0,0]), [1., 0., 0.], 100, np.inf]
 VF_1.plot_plane(evaluate_plane)  # surface描画
