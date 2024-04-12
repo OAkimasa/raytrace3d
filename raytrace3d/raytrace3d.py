@@ -1147,40 +1147,66 @@ class VectorFunctions:
                 a = -a
             if max_index == 0:  # x軸向き配置, 未確認注意
                 print("ray_dir, 自動正規化 x,z向き, 未確認注意")
-                if ray_dir[0][1] == 0 and ray_dir[0][2] == 0:  # x軸に平行な光線
-                    T = [a*(ray_pos[i][1]**2 - ray_pos[i][0]/a + ray_pos[i][1]
-                            ** 2) / ray_dir[i][0] for i in range(length_ray_start_dir)]
-                    self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
-                    self.optical_path_length += np.array(T) * \
-                        self._refractive_index_calc_optical_path_length
+                # if ray_dir[0][1] == 0 and ray_dir[0][2] == 0:  # x軸に平行な光線
+                #     T = [a*(ray_pos[i][1]**2 - ray_pos[i][0]/a + ray_pos[i][1]
+                #             ** 2) / ray_dir[i][0] for i in range(length_ray_start_dir)]
+                #     self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
+                #     self.optical_path_length += np.array(T) * \
+                #         self._refractive_index_calc_optical_path_length
+                #     self._normalV_refract_or_reflect = self._calc_normalV_parabola()
+                # else:  # x軸に平行でない光線
+                #     if test_dot < 0:  # 凸
+                #         A = [ray_dir[i][1]**2 + ray_dir[i][2] ** 2
+                #              for i in range(length_ray_start_dir)]
+                #         B = [ray_pos[i][1]*ray_dir[i][1] + ray_pos[i][2] * ray_dir[i][2] - ray_dir[i][0]/(2*a)
+                #              for i in range(length_ray_start_dir)]
+                #         C = [ray_pos[i][1]**2 + ray_pos[i][2]**2 - ray_pos[i][0]/a
+                #              for i in range(length_ray_start_dir)]
+                #         T = [(-B[i] - np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
+                #              for i in range(length_ray_start_dir)]
+                #         self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
+                #         self.optical_path_length += np.array(T) * \
+                #             self._refractive_index_calc_optical_path_length
+                #         self._normalV_refract_or_reflect = self._calc_normalV_parabola()
+                #     else:  # 凹
+                #         A = [ray_dir[i][1]**2 + ray_dir[i][2] ** 2
+                #              for i in range(length_ray_start_dir)]
+                #         B = [ray_pos[i][1]*ray_dir[i][1] + ray_pos[i][2] * ray_dir[i][2] - ray_dir[i][0]/(2*a)
+                #              for i in range(length_ray_start_dir)]
+                #         C = [ray_pos[i][1]**2 + ray_pos[i][2]**2 - ray_pos[i][0]/a
+                #              for i in range(length_ray_start_dir)]
+                #         T = [(-B[i] + np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
+                #              for i in range(length_ray_start_dir)]
+                #         self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
+                #         self.optical_path_length += np.array(T) * \
+                #             self._refractive_index_calc_optical_path_length
+                #         self._normalV_refract_or_reflect = self._calc_normalV_parabola()
+                if np.all(ray_dir[:, 1] == 0) and np.all(ray_dir[:, 2] == 0):  # x軸に平行な光線
+                    T = (a * (ray_pos[:, 1]**2 - ray_pos[:, 0] / a +
+                         ray_pos[:, 1]**2) / ray_dir[:, 0]).reshape(-1, 1)
+                    self.ray_end_pos = self.ray_start_pos + T * self.ray_start_dir
+                    self.optical_path_length += (
+                        T * self._refractive_index_calc_optical_path_length).flatten()
                     self._normalV_refract_or_reflect = self._calc_normalV_parabola()
                 else:  # x軸に平行でない光線
-                    if test_dot < 0:  # 凸
-                        A = [ray_dir[i][1]**2 + ray_dir[i][2] ** 2
-                             for i in range(length_ray_start_dir)]
-                        B = [ray_pos[i][1]*ray_dir[i][1] + ray_pos[i][2] * ray_dir[i][2] - ray_dir[i][0]/(2*a)
-                             for i in range(length_ray_start_dir)]
-                        C = [ray_pos[i][1]**2 + ray_pos[i][2]**2 - ray_pos[i][0]/a
-                             for i in range(length_ray_start_dir)]
-                        T = [(-B[i] - np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
-                             for i in range(length_ray_start_dir)]
-                        self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
-                        self.optical_path_length += np.array(T) * \
-                            self._refractive_index_calc_optical_path_length
-                        self._normalV_refract_or_reflect = self._calc_normalV_parabola()
-                    else:  # 凹
-                        A = [ray_dir[i][1]**2 + ray_dir[i][2] ** 2
-                             for i in range(length_ray_start_dir)]
-                        B = [ray_pos[i][1]*ray_dir[i][1] + ray_pos[i][2] * ray_dir[i][2] - ray_dir[i][0]/(2*a)
-                             for i in range(length_ray_start_dir)]
-                        C = [ray_pos[i][1]**2 + ray_pos[i][2]**2 - ray_pos[i][0]/a
-                             for i in range(length_ray_start_dir)]
-                        T = [(-B[i] + np.sqrt(B[i]**2 - A[i]*C[i])) / A[i]
-                             for i in range(length_ray_start_dir)]
-                        self.ray_end_pos = self.ray_start_pos + T*self.ray_start_dir
-                        self.optical_path_length += np.array(T) * \
-                            self._refractive_index_calc_optical_path_length
-                        self._normalV_refract_or_reflect = self._calc_normalV_parabola()
+                    #test_dot = np.dot(ray_dir, ray_dir)
+                    convex = test_dot < 0  # 凸
+                    A = ray_dir[:, 1]**2 + ray_dir[:, 2]**2
+                    B = ray_pos[:, 1] * ray_dir[:, 1] + ray_pos[:,
+                                                                2] * ray_dir[:, 2] - ray_dir[:, 0] / (2 * a)
+                    C = ray_pos[:, 1]**2 + ray_pos[:, 2]**2 - ray_pos[:, 0] / a
+                    discriminant = B**2 - A * C
+                    sqrt_discriminant = np.sqrt(discriminant)
+
+                    T1 = (-B - sqrt_discriminant) / A
+                    T2 = (-B + sqrt_discriminant) / A
+
+                    T = np.where(convex, T1, T2).reshape(-1, 1)
+                    self.ray_end_pos = self.ray_start_pos + T * self.ray_start_dir
+                    # .flatten() を使用して形状を (173,) に変更
+                    self.optical_path_length += (
+                        T * self._refractive_index_calc_optical_path_length).flatten()
+                    self._normalV_refract_or_reflect = self._calc_normalV_parabola()
             elif max_index == 1:  # y軸向き配置, たぶんOK
                 # if ray_dir[0][0] == 0 and ray_dir[0][2] == 0:  # y軸に平行な光線
                 #     T = [a*(ray_pos[i][0]**2 - ray_pos[i][1]/a + ray_pos[i][0]
