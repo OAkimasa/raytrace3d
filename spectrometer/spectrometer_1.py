@@ -329,9 +329,12 @@ calc_prime_focus()
 
 
 M1_angle = 30  # deg
-M1 = [[1498.75+254,0,0], [np.cos(np.deg2rad(180-M1_angle)), 0, np.sin(np.deg2rad(180-M1_angle))], 25.4, 237.0*2, -1]
+M1 = [[1498.75+254,0,200], [np.cos(np.deg2rad(180-M1_angle)), 0, np.sin(np.deg2rad(180-M1_angle))], 25.4*10, 237.0*2, -1]
 
-VF_1.plot_conic(M1)
+VF_1.plot_mirror(M1)  # test
+VF_1.plot_parabola_offAxis(M1, offAxis_pos=[0,0,0])  # test
+
+# VF_1.plot_conic(M1)
 VF_1.ray_start_pos = KGT40_last_ray_pos  # KGT40からの光を入射
 VF_1.ray_start_dir = KGT40_last_ray_dir
 VF_1.set_surface(M1, surface_name='M1')  # M1を登録(分光器)

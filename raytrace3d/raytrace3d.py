@@ -597,6 +597,83 @@ class VectorFunctions:
         elif max_index == 2:  # z軸向き配置
             self._ax.plot_wireframe(ax_no_opt_1+ax_no_opt_1_center, ax_no_opt_2+ax_no_opt_2_center, ax_opt+ax_opt_center, color='b', linewidth=0.1)
 
+    def plot_parabola_offAxis(self, params, offAxis_pos=[0, 0, 0]):
+        """
+        回転放物面を描画する。
+
+        Parameters
+        ----------
+        params : list or ndarray
+            光学素子(plane)のパラメータを格納したリストまたはndarray。
+            [[pos_x, pos_y, pos_z], [normalV_x, normalV_y, normalV_z], R, parabola_R(axis+-)]
+
+        Returns
+        -------
+        None
+        """
+        theta = np.linspace(0, 2*np.pi, 100)
+        R = params[2]
+        a = abs(1/(2*params[3]))
+        if params[3] < 0:
+            a = a
+        else:
+            a = -a
+
+        max_index = self._max_index(params[1])
+
+        if max_index == 0:  # x軸向き配置
+            ax_opt_center = params[0][0]
+            ax_no_opt_1_center = params[0][1]
+            ax_no_opt_2_center = params[0][2]
+            nV_arg_opt = params[1][0]
+            nV_arg_no_opt_1 = params[1][1]
+            nV_arg_no_opt_2 = params[1][2]
+            offAxis_opt_center = offAxis_pos[0]
+            offAxis_no_opt_1_center = offAxis_pos[1]
+            offAxis_no_opt_2_center = offAxis_pos[2]
+        elif max_index == 1:  # y軸向き配置
+            ax_opt_center = params[0][1]
+            ax_no_opt_1_center = params[0][2]
+            ax_no_opt_2_center = params[0][0]
+            nV_arg_opt = params[1][1]
+            nV_arg_no_opt_1 = params[1][2]
+            nV_arg_no_opt_2 = params[1][0]
+            offAxis_opt_center = offAxis_pos[1]
+            offAxis_no_opt_1_center = offAxis_pos[2]
+            offAxis_no_opt_2_center = offAxis_pos[0]
+        elif max_index == 2:  # z軸向き配置
+            ax_opt_center = params[0][2]
+            ax_no_opt_1_center = params[0][0]
+            ax_no_opt_2_center = params[0][1]
+            nV_arg_opt = params[1][2]
+            nV_arg_no_opt_1 = params[1][0]
+            nV_arg_no_opt_2 = params[1][1]
+            offAxis_opt_center = offAxis_pos[2]
+            offAxis_no_opt_1_center = offAxis_pos[0]
+            offAxis_no_opt_2_center = offAxis_pos[1]
+
+        ax_no_opt_1 = R*np.cos(theta)+ax_no_opt_1_center-offAxis_no_opt_1_center
+        ax_no_opt_2 = R*np.sin(theta)+ax_no_opt_2_center-offAxis_no_opt_2_center
+        ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
+        ax_opt = ax_opt_center + offAxis_opt_center - \
+                    (a*(ax_no_opt_1-ax_no_opt_1_center)**2 + \
+                    a*(ax_no_opt_2-ax_no_opt_2_center)**2)/-1
+
+        for i in range(100):
+            for j in range(100):
+                if (ax_opt[i][j]-ax_opt_center+offAxis_opt_center)**2 + \
+                    (ax_no_opt_1[i][j]-ax_no_opt_1_center+offAxis_no_opt_1_center)**2 + \
+                    (ax_no_opt_2[i][j]-ax_no_opt_2_center+offAxis_no_opt_2_center)**2 > R**2:
+                    ax_opt[i][j] = np.nan
+
+        if max_index == 0:  # x軸向き配置
+            self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color='b', linewidth=0.1)
+        elif max_index == 1:  # y軸向き配置
+            self._ax.plot_wireframe(ax_no_opt_2, ax_opt, ax_no_opt_1, color='b', linewidth=0.1)
+        elif max_index == 2:  # z軸向き配置
+            self._ax.plot_wireframe(ax_no_opt_1, ax_no_opt_2, ax_opt, color='b', linewidth=0.1)
+
+
     # コーニック面描画
     def plot_conic(self, params):
         """
