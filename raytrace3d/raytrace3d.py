@@ -655,7 +655,7 @@ class VectorFunctions:
         ax_no_opt_1 = R*np.cos(theta)+ax_no_opt_1_center-offAxis_no_opt_1_center
         ax_no_opt_2 = R*np.sin(theta)+ax_no_opt_2_center-offAxis_no_opt_2_center
         ax_no_opt_1, ax_no_opt_2 = np.meshgrid(ax_no_opt_1, ax_no_opt_2)
-        ax_opt = ax_opt_center + offAxis_opt_center - \
+        ax_opt = ax_opt_center - \
                     (a*(ax_no_opt_1-ax_no_opt_1_center)**2 + \
                     a*(ax_no_opt_2-ax_no_opt_2_center)**2)/-1
 
@@ -665,6 +665,8 @@ class VectorFunctions:
                     (ax_no_opt_1[i][j]-ax_no_opt_1_center+offAxis_no_opt_1_center)**2 + \
                     (ax_no_opt_2[i][j]-ax_no_opt_2_center+offAxis_no_opt_2_center)**2 > R**2:
                     ax_opt[i][j] = np.nan
+
+        print("nV_arg_opt: ", nV_arg_opt, "nV_arg_no_opt_1: ", nV_arg_no_opt_1, "nV_arg_no_opt_2: ", nV_arg_no_opt_2)
 
         if max_index == 0:  # x軸向き配置
             self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color='b', linewidth=0.1)
