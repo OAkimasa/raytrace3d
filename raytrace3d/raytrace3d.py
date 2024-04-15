@@ -597,7 +597,7 @@ class VectorFunctions:
         elif max_index == 2:  # z軸向き配置
             self._ax.plot_wireframe(ax_no_opt_1+ax_no_opt_1_center, ax_no_opt_2+ax_no_opt_2_center, ax_opt+ax_opt_center, color='b', linewidth=0.1)
 
-    def plot_parabola_offAxis(self, params, offAxis_pos=[0, 0, 0]):
+    def plot_parabola_offAxis(self, params, offAxis_pos=[0, 0, 0], rot=[0, 0, 0]):
         """
         回転放物面を描画する。
 
@@ -620,6 +620,7 @@ class VectorFunctions:
             a = -a
 
         max_index = self._max_index(params[1])
+        print("max_index: ", max_index)
 
         if max_index == 0:  # x軸向き配置
             ax_opt_center = params[0][0]
@@ -667,6 +668,31 @@ class VectorFunctions:
                     ax_opt[i][j] = np.nan
 
         print("nV_arg_opt: ", nV_arg_opt, "nV_arg_no_opt_1: ", nV_arg_no_opt_1, "nV_arg_no_opt_2: ", nV_arg_no_opt_2)
+
+        if rot[2] != 0:  # no_opt_2軸周りに回転
+            tmp_ax_opt = ax_opt
+            tmp_ax_no_opt_1 = ax_no_opt_1
+            tmp_ax_no_opt_2 = ax_no_opt_2
+            # rotate
+            ax_opt = (tmp_ax_opt-ax_opt_center)*np.cos(np.deg2rad(rot[2])) - (tmp_ax_no_opt_1-ax_no_opt_1_center)*np.sin(np.deg2rad(rot[2])) + 0 + ax_opt_center
+            ax_no_opt_1 = (tmp_ax_opt-ax_opt_center)*np.sin(np.deg2rad(rot[2])) + (tmp_ax_no_opt_1-ax_no_opt_1_center)*np.cos(np.deg2rad(rot[2])) + 0 + ax_no_opt_1_center
+            ax_no_opt_2 = 0 + 0 + (tmp_ax_no_opt_2-ax_no_opt_2_center) + ax_no_opt_2_center
+        if rot[1] != 0:  # no_opt_1軸周りに回転
+            tmp_ax_opt = ax_opt
+            tmp_ax_no_opt_1 = ax_no_opt_1
+            tmp_ax_no_opt_2 = ax_no_opt_2
+            # rotate
+            ax_opt = (tmp_ax_opt-ax_opt_center)*np.cos(np.deg2rad(rot[1])) + 0 + (tmp_ax_no_opt_2-ax_no_opt_2_center)*np.sin(np.deg2rad(rot[1])) + ax_opt_center
+            ax_no_opt_1 = 0 + (tmp_ax_no_opt_1-ax_no_opt_1_center) + 0 + ax_no_opt_1_center
+            ax_no_opt_2 = -(tmp_ax_opt-ax_opt_center)*np.sin(np.deg2rad(rot[1])) + 0 + (tmp_ax_no_opt_2-ax_no_opt_2_center)*np.cos(np.deg2rad(rot[1])) + ax_no_opt_2_center
+        if rot[0] != 0:  # no_opt_1軸周りに回転
+            tmp_ax_opt = ax_opt
+            tmp_ax_no_opt_1 = ax_no_opt_1
+            tmp_ax_no_opt_2 = ax_no_opt_2
+            # rotate
+            ax_opt = (tmp_ax_opt-ax_opt_center) + 0 + 0 + ax_opt_center
+            ax_no_opt_1 = 0 + (tmp_ax_no_opt_1-ax_no_opt_1_center)*np.cos(np.deg2rad(rot[0])) - (tmp_ax_no_opt_2-ax_no_opt_2_center)*np.sin(np.deg2rad(rot[0])) + ax_no_opt_1_center
+            ax_no_opt_2 = 0 + (tmp_ax_no_opt_1-ax_no_opt_1_center)*np.sin(np.deg2rad(rot[0])) + (tmp_ax_no_opt_2-ax_no_opt_2_center)*np.cos(np.deg2rad(rot[0])) + ax_no_opt_2_center
 
         if max_index == 0:  # x軸向き配置
             self._ax.plot_wireframe(ax_opt, ax_no_opt_1, ax_no_opt_2, color='b', linewidth=0.1)

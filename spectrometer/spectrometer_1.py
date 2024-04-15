@@ -329,16 +329,18 @@ calc_prime_focus()
 
 
 M1_angle = 30  # deg
-M1 = [[1498.75+254,0,200], [np.cos(np.deg2rad(180-M1_angle)), 0, np.sin(np.deg2rad(180-M1_angle))], 25.4*10, 237.0*2, -1]
+M1 = [[1498.75+254,0,0], [np.cos(np.deg2rad(180-M1_angle)), 0, np.sin(np.deg2rad(180-M1_angle))], 25.4*10, 237.0*2, -1]
+M1plane = [[1498.75+254,0,0], [np.cos(np.deg2rad(180-M1_angle)), 0, np.sin(np.deg2rad(180-M1_angle))], 25.4, np.inf]
 
-VF_1.plot_mirror(M1)  # test
-VF_1.plot_parabola_offAxis(M1, offAxis_pos=[0,0,0])  # test
+VF_1.plot_mirror(M1plane)  # test
+VF_1.plot_parabola_offAxis(M1, offAxis_pos=[0,0,-200], rot=[0,30,0])  # test
 
 # VF_1.plot_conic(M1)
 VF_1.ray_start_pos = KGT40_last_ray_pos  # KGT40からの光を入射
 VF_1.ray_start_dir = KGT40_last_ray_dir
 VF_1.set_surface(M1, surface_name='M1')  # M1を登録(分光器)
-VF_1.raytrace_aspherical()  # 光線追跡
+# VF_1.raytrace_aspherical()  # 光線追跡
+VF_1.raytrace_parabola()  # 光線追跡
 VF_1.reflect()  # 反射
 VF_1.plot_line_red(alpha=ray_alpha)  # 光線描画
 
