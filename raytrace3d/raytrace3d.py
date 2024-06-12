@@ -929,35 +929,38 @@ class VectorFunctions:
         -------
         None
         """
-        lens_pos = self._surface_pos
-        lens_R = self._lens_or_parabola_R
-        length_ray_start_dir = len(self.ray_start_pos)
+        if self._lens_or_parabola_R == np.inf:
+            self.raytrace_plane()
+        else:
+            lens_pos = self._surface_pos
+            lens_R = self._lens_or_parabola_R
+            length_ray_start_dir = len(self.ray_start_pos)
 
-        tmp_V = np.zeros(3)
-        tmp_index = self._max_index(self.ray_start_dir[0])
-        tmp_V[tmp_index] = lens_R
-        tmp_V = np.array([tmp_V] * length_ray_start_dir)
-        test_dot = np.sum(tmp_V * self.ray_start_dir, axis=1)  # 内積を計算
+            tmp_V = np.zeros(3)
+            tmp_index = self._max_index(self.ray_start_dir[0])
+            tmp_V[tmp_index] = lens_R
+            tmp_V = np.array([tmp_V] * length_ray_start_dir)
+            test_dot = np.sum(tmp_V * self.ray_start_dir, axis=1)  # 内積を計算
 
-        shiftV = lens_pos - tmp_V
+            shiftV = lens_pos - tmp_V
 
-        T = np.zeros(length_ray_start_dir)
-        convex = test_dot < 0  # 凸
+            T = np.zeros(length_ray_start_dir)
+            convex = test_dot < 0  # 凸
 
-        ray_pos = self.ray_start_pos - shiftV
-        A = np.diag(np.dot(self.ray_start_dir, np.array(self.ray_start_dir).T))
-        B = np.diag(np.dot(self.ray_start_dir, ray_pos.T))
-        C = np.diag(np.dot(ray_pos, ray_pos.T)) - abs(lens_R)**2
+            ray_pos = self.ray_start_pos - shiftV
+            A = np.diag(np.dot(self.ray_start_dir, np.array(self.ray_start_dir).T))
+            B = np.diag(np.dot(self.ray_start_dir, ray_pos.T))
+            C = np.diag(np.dot(ray_pos, ray_pos.T)) - abs(lens_R)**2
 
-        non_zero_indices = np.where(
-            np.dot(self.ray_start_dir, np.array([1, 1, 1])) != 0)[0]
-        T[non_zero_indices] = np.where(convex, (-B[non_zero_indices] - np.sqrt(B[non_zero_indices]**2 - A[non_zero_indices]*C[non_zero_indices])) /
-                                       A[non_zero_indices], (-B[non_zero_indices] + np.sqrt(B[non_zero_indices]**2 - A[non_zero_indices]*C[non_zero_indices])) / A[non_zero_indices])
+            non_zero_indices = np.where(
+                np.dot(self.ray_start_dir, np.array([1, 1, 1])) != 0)[0]
+            T[non_zero_indices] = np.where(convex, (-B[non_zero_indices] - np.sqrt(B[non_zero_indices]**2 - A[non_zero_indices]*C[non_zero_indices])) /
+                                        A[non_zero_indices], (-B[non_zero_indices] + np.sqrt(B[non_zero_indices]**2 - A[non_zero_indices]*C[non_zero_indices])) / A[non_zero_indices])
 
-        self.ray_end_pos = self.ray_start_pos + \
-            np.array([V * T for V, T in zip(self.ray_start_dir, T)])
-        self.optical_path_length += T * self._refractive_index_calc_optical_path_length
-        self._normalV_refract_or_reflect = self._calc_normalV_sphere()
+            self.ray_end_pos = self.ray_start_pos + \
+                np.array([V * T for V, T in zip(self.ray_start_dir, T)])
+            self.optical_path_length += T * self._refractive_index_calc_optical_path_length
+            self._normalV_refract_or_reflect = self._calc_normalV_sphere()
 
     # 球面の法線ベクトルを計算する関数
 
