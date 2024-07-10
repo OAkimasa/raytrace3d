@@ -1248,6 +1248,7 @@ class VectorFunctions:
                 #             T[i])*self._refractive_index_calc_optical_path_length for i in range(length_ray_start_dir)])
                 #         self._normalV_refract_or_reflect = self._calc_normalV_parabola()
                 if np.all(ray_dir[:, 0] == 0) and np.all(ray_dir[:, 2] == 0):  # y軸に平行な光線
+                    a/=2  # 検証が足りない
                     T = (a * (ray_pos[:, 0]**2 - ray_pos[:, 1] / a +
                          ray_pos[:, 0]**2) / ray_dir[:, 1]).reshape(-1, 1)
                     self.ray_end_pos = self.ray_start_pos + T * self.ray_start_dir
