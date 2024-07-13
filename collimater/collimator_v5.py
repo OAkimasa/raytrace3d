@@ -265,7 +265,8 @@ for VF in VF_list:
     VF.set_ax(ax)  # axをVFに登録
 
 # param = [pos, nV, R, Lens_R(axis+-)]
-lens_pos = 0.
+# lens_pos = 0.  # best focus: width = 4.5/2
+lens_pos = 0.165  # best focus: width = 25/2
 mode = 1  # 運用時、0: 通常の射出瞳をセンサーへ向ける, 1: 通常の射出瞳を光源へ向ける
 if mode:
     surface_1 = [[lens_pos+0.00, 0., 0.]+lens_shift,
@@ -296,7 +297,8 @@ for plane in plane_list:
     VF.plot_plane(plane)  # 平面描画
 
 # 始点を生成する
-width = 4.5/2
+# width = 4.5/2
+width = 25/2
 #space = 2
 rayDensity = 1
 rayCenterX = -100
@@ -407,7 +409,7 @@ ax.set_box_aspect((aspect_X, aspect_Y, aspect_Z))
 ax.set_xlim(-1, 1)
 ax.set_ylim(-1, 1)
 ax.set_zlim(-1, 1)
-#ax.set_zlim(-0.25, 0.25)
+ax.set_zlim(-15, 15)
 ax.set_xlabel("Pupil X")
 ax.set_ylabel("Pupil Y")
 ax.set_zlabel("wavefront error [waves]")
@@ -454,6 +456,7 @@ for wavefront_func in wavefront_func_list:
         tmp_wavefront.append(tmp_wavefront_row)
     wavefront = np.array(tmp_wavefront)
     #print("wavefront.shape: ", wavefront.shape)
+    wavefront -= np.nanmean(wavefront)
     wavefront_list.append(wavefront)
 wavefront_list = np.array(wavefront_list)
 #print("wavefront_list.shape: ", wavefront_list.shape)
@@ -525,7 +528,8 @@ ax.set_xticks(np.arange(0, 37, 1),
               fringe_zernike_mode_name, rotation=-90, fontsize=8)
 ax.grid()
 ax.set_xlim(0, 21)
-ax.set_ylim(-0.5, 0.5)
+# ax.set_ylim(-0.5, 0.5)
+ax.set_ylim(-15, 15)
 
 for i, wavefront_func in enumerate(wavefront_func_list):
     alpha = 0.3
