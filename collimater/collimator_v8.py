@@ -95,7 +95,8 @@ print("lens_unit_aperture_R: {0:.3f} mm".format(lens_unit_aperture_R))
 # width = lens_unit_aperture_R
 # space = lens_unit_aperture_R//4
 width = 7.5
-space = 7.5//4
+# space = 7.5//4
+space = 0.5
 rayDensity = 1
 # rayCenterX = -focal_length
 # rayCenterY = 0
@@ -174,9 +175,22 @@ plot_line_CdF()  # 光線描画
 for i, VF in enumerate(VF_list):
     VF.ray_start_pos = VF.ray_end_pos  # surface_6の終点を評価面の始点に
     VF.ray_start_dir = VF.ray_end_dir  # surface_6の終点を評価面の始点に
-    VF.set_surface(evaluation_plane)  # 評価面をVFに登録
-    VF.raytrace_plane()  # 光線追跡
+    # VF.set_surface(evaluation_plane)  # 評価面をVFに登録
+    # VF.raytrace_plane()  # 光線追跡
+    print(VF.optical_path_length)
+    # optical_path_length + T = const.となるTを求める
+    T = (-200+15.462) - VF.optical_path_length
+    VF.ray_end_pos = VF.ray_start_pos + np.array([V*T for V,T in zip(VF.ray_start_dir, T)])
+    VF.optical_path_length += T
+    print(VF.optical_path_length)
 plot_line_CdF()  # 光線描画
+
+# 半径70mmの球面を描画
+YY = np.linspace(-70, 70, 100)
+ZZ = np.linspace(-70, 70, 100)
+YY, ZZ = np.meshgrid(YY, ZZ)
+XX = -np.sqrt(70**2 - YY**2 - ZZ**2)
+ax.plot_surface(XX+70, YY, ZZ, color="gray", alpha=0.1)
 
 for VF in VF_list:
     plane_X = np.mean(VF.ray_end_pos[:, 0])
